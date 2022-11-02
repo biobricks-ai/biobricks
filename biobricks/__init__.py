@@ -1,2 +1,1 @@
-def hi():
-    return (u'Hi there.')
+from .code import hi
