@@ -29,7 +29,7 @@ def initialize() -> None:
         bricks = config["bricks"]
         print(f"BioBricks library already intialized to {library}.")
     else:
-        bblib = os.getenv("bblib")
+        bblib = os.getenv("BBLIB")
         if bblib:
             library = bblib
         else:
