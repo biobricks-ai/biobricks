@@ -8,6 +8,7 @@ import json
 import pyarrow.parquet as pq
 import urllib.request
 from typing import Any, Dict
+from . import bbportal
 
 BASE_DIR = os.path.expanduser('~')+'/biobricks'
 CONFIG_FILE = BASE_DIR+'/config.json'
@@ -42,6 +43,9 @@ def initialize() -> None:
         if not exists(library+"/.git"):
             os.system(f"cd {library}; git init")
         print(f"Initialized BioBricks library to {library}.")
+    
+    if not bbportal.BBtoken_exists(config):
+        bbportal.BBtoken_browser_update(config,CONFIG_FILE)
 
 def pull(brick):
     global config, library, bricks
