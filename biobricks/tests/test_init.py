@@ -4,6 +4,7 @@ import pathlib
 import tempfile
 
 import biobricks as bb
+from ..pull import check_url_available
 from unittest.mock import Mock
 
 @pytest.fixture
@@ -49,3 +50,22 @@ def local_bblib(TOKEN):
     yield pathlib.Path(tdir.name)
     if oldbb: os.environ['BBLIB'] = oldbb
     tdir.cleanup()
+
+def test_load(local_bblib):
+    brick="lkjasdfkjasdklfj"
+    with pytest.raises(Exception,match=".*not available.*"):
+        bb.pull(brick)
+
+    brick = "hello-brick"
+    org = "biobricks-ai"
+    bb.pull(brick,org)
+    assert bb.bblib(f'{org}/{brick}/data/mtcars.parquet').exists()
+
+    tbls = bb.load(brick,org)
+    assert tbls.mtcars.shape == (32,11)
+
+    with pytest.raises(Exception,match="no path.*"):
+        bb.load("a-brick-that-doesn't-exist")
+    
+    with pytest.raises(Exception,match=".* not available"):
+        check_url_available("http://the-internet.herokuapp.com/status_codes/301")

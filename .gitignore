@@ -10,4 +10,4 @@
 env/
 
 # ignore codecov
-.coverage 
+.coverage*
