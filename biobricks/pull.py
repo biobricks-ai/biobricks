@@ -1,4 +1,4 @@
-from biobricks import bblib
+from biobricks import bblib, token
 import os, urllib.request as request, dvc.api, pathlib
 
 def check_url_available(url):
@@ -15,11 +15,23 @@ def pull(brick,org="biobricks-ai"):
     check_url_available(url)
 
     bblib(org).mkdir(exist_ok=True)
-    os.system(f"cd {bblib()}; git submodule add {url} {repo}")
-    os.system(f"cd {bblib(repo)}; dvc cache dir ../../cache")
-    os.system(f"cd {bblib(repo)}; dvc config cache.shared group")
-    os.system(f"cd {bblib(repo)}; dvc config cache.type symlink")
-    os.system(f"cd {bblib()}; git commit -m \"added {repo}\"")
+
+    def psys(path): 
+        return lambda cmd: os.system(f"cd {path}; {cmd}")
+        
+    psys(bblib())(f"git submodule add {url} {repo}")
+    
+    rsys = psys(bblib(repo))
+    rsys("dvc cache dir ../../cache")
+    rsys("dvc config cache.shared group")
+    rsys("dvc config cache.type symlink")
+    rsys(f"git commit -m \"added {repo}\"")
+
+    # SET UP BIOBRICKS.AI DVC REMOTE WITH AUTH
+    rsys("dvc remote add -f biobricks.ai https://dvc.biobricks.ai")
+    rsys("dvc remote modify --local biobricks.ai auth custom")
+    rsys("dvc remote modify --local biobricks.ai custom_auth_header BBToken")
+    rsys(f"dvc remote modify --local biobricks.ai password {token()}")
 
     # TODO handle file types other than parquet
     fs = dvc.api.DVCFileSystem(bblib(repo))

@@ -18,7 +18,7 @@ def BBLIB():
 
 @pytest.fixture
 def TOKEN():
-    return "alksdjfklasdjflk"
+    return "8dxRZmQFbQ1QuIcg6u9fdw"
 
 def test_initialize(BBLIB,TOKEN):
     errmsg = "must use token from https://members.biobricks.ai/token"
