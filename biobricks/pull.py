@@ -1,5 +1,6 @@
 from biobricks import bblib, token
-import os, urllib.request as request, dvc.api, pathlib
+from subprocess import run, DEVNULL
+import os, urllib.request as request, functools, dvc.api
 
 def check_url_available(url):
     try:
@@ -16,12 +17,12 @@ def pull(brick,org="biobricks-ai"):
 
     bblib(org).mkdir(exist_ok=True)
 
-    def psys(path): 
-        return lambda cmd: os.system(f"cd {path}; {cmd}")
-        
-    psys(bblib())(f"git submodule add {url} {repo}")
     
-    rsys = psys(bblib(repo))
+    cmd = functools.partial(run,shell=True,stdout=DEVNULL,stderr=DEVNULL)
+        
+    cmd(f"git submodule add {url} {repo}",cwd=bblib())
+    
+    rsys = functools.partial(cmd,cwd=bblib(repo))
     rsys("dvc cache dir ../../cache")
     rsys("dvc config cache.shared group")
     rsys("dvc config cache.type symlink")
@@ -33,12 +34,18 @@ def pull(brick,org="biobricks-ai"):
     rsys("dvc remote modify --local biobricks.ai custom_auth_header BBToken")
     rsys(f"dvc remote modify --local biobricks.ai password {token()}")
 
-    # TODO handle file types other than parquet
     fs = dvc.api.DVCFileSystem(bblib(repo))
     paths = fs.find("data",maxdepth=1) + fs.find("brick",maxdepth=1)
-    parquet = [x for x in paths if x.endswith('.parquet')]
+    parquet_paths = [x for x in paths if x.endswith('.parquet')]
 
-    for file in parquet:
-        os.system(f"cd {bblib(repo)}; dvc pull {file}")
-    
+    rsys(f"dvc pull {' '.join(parquet_paths)}")
     return True
+
+def uninstall(brick,org="biobricks-ai"):
+    "completely remove submodule (see https://stackoverflow.com/questions/1260748/how-do-i-remove-a-submodule)"
+    repo = f"{org}/{brick}"
+    
+    os.system(f"cd {bblib()}; git rm -f {repo}")
+    os.system(f"cd {bblib()}; rm -rf .git/modules/{repo}")
+    os.system(f"cd {bblib()}; git config --remove-section submodule.{repo}")
+    
