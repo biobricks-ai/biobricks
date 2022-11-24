@@ -15,11 +15,8 @@ def pull(brick,org="biobricks-ai"):
     url  = "https://github.com/"+repo
     check_url_available(url)
 
-    bblib(org).mkdir(exist_ok=True)
-
-    
+    bblib(org).mkdir(exist_ok=True)    
     cmd = functools.partial(run,shell=True,stdout=DEVNULL,stderr=DEVNULL)
-        
     cmd(f"git submodule add {url} {repo}",cwd=bblib())
     
     rsys = functools.partial(cmd,cwd=bblib(repo))
