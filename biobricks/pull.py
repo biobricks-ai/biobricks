@@ -1,4 +1,4 @@
-from biobricks import bblib, token
+from biobricks import bblib, token, check_token
 from subprocess import run, DEVNULL
 import os, urllib.request as request, functools, dvc.api
 
@@ -14,6 +14,7 @@ def pull(brick,org="biobricks-ai"):
     repo = f"{org}/{brick}"
     url  = "https://github.com/"+repo
     check_url_available(url)
+    check_token(token())
 
     bblib(org).mkdir(exist_ok=True)    
     cmd = functools.partial(run,shell=True,stdout=DEVNULL,stderr=DEVNULL)

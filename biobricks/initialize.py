@@ -1,6 +1,6 @@
 import os
 
-from .token import token_init
+from .token import update_token
 from .bblib import bblib
 
 def initialize(token=None) -> None:
@@ -11,7 +11,7 @@ def initialize(token=None) -> None:
     os.makedirs(bblib("cache"), exist_ok=True)
     os.system(f"cd {bblib()}; git init")
     
-    token_init("default",token)
+    update_token(token,"default")
 
     print(f"Initialized BioBricks library to {bblib()}.")
     return bblib()
