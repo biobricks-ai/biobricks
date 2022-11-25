@@ -1,14 +1,16 @@
 from biobricks import bblib, pull
-import pathlib as pl
+import pathlib as pl, pkg_resources, yaml
 
 def bb_init(location=".bb"):
 
     dotbb = pl.Path(location)
-    if dotbb.exists(): return;
+    if dotbb.exists(): return
+    dotbb.mkdir()
     
-    dotbb.mkdir()    
+    # get package verfsion
+    config = {"version":pkg_resources.get_distribution("biobricks").version}
     with open(dotbb / "config", "w") as f: 
-        f.write("{}")
+        yaml.dump(config,f)
     
     with open(dotbb / ".gitignore", "w") as f: 
         f.write("/*")
