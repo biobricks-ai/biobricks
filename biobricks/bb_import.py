@@ -13,7 +13,7 @@ def bb_init(location=".bb"):
         yaml.dump(config,f)
     
     with open(dotbb / ".gitignore", "w") as f: 
-        f.write("/*")
+        f.write("/*/") # ignore all subdirectories
         
 
 def bb_import(brick,org="biobricks-ai",location=".bb"):
@@ -29,3 +29,9 @@ def bb_import(brick,org="biobricks-ai",location=".bb"):
 
     localdir = orgdir / brick
     localdir.symlink_to(brickdir,target_is_directory=True)
+
+    # write a line to the config file recording this import
+    with open(pl.Path(location) / "config", "a") as f:
+        f.write(f"{org}/{brick}")
+    
+        
