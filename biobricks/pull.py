@@ -37,6 +37,7 @@ def pull(brick,org="biobricks-ai"):
     parquet_paths = [x for x in paths if x.endswith('.parquet')]
 
     rsys(f"dvc pull {' '.join(parquet_paths)}")
+    print(f"Brick \033[91m{brick}\033[0m succesfully downloaded to BioBricks library.")
     return True
 
 def uninstall(brick,org="biobricks-ai"):
