@@ -4,9 +4,12 @@
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 <!-- badges: end -->
 
-Biobricks automates bioinformatics data.
+BioBricks is a tool to load data from biological datasets in an easy and
+automated way.
 
 ## Installation
+
+To install BioBricks package use the python packagge manager `pip`.
 
 ```bash
 $ pip install biobricks
@@ -14,10 +17,7 @@ $ pip install biobricks
 
 ## Usage
 
-BioBricks is a tool to load data from biological datasets in an easy and
-automated way.
-
-To import BioBricks package use:
+To import BioBricks package use the following state:
 
 ```python
 import biobricks as bb
@@ -69,3 +69,17 @@ To list the bricks currently available in the BioBricks GitHub
 repository you can visit:
 
 https://github.com/biobricks-ai
+
+## Complete example
+
+```python
+import biobricks as bb
+
+bb.pull('tox21')
+tox21 = bb.load('tox21')
+tablenames = sorted(list(vars(tox21).keys()))
+for tablename in tablenames:
+    print(tablename)
+ache_p4 = tox21.tox21_ache_p4.to_pandas()
+print(ache_p4.head())
+```
