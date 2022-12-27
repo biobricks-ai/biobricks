@@ -37,13 +37,13 @@ echo $BBLIB
 bb.initialize(<YOUR TOKEN>)
 ```
 
-To download a brick and save it locally in your library use the function `bb.pull`. As an example, with the following statement we can download the Tox21 data dataset 
+To download a brick and save it locally in your library use the function `bb.pull`. As an example, Tox21 data dataset can be downlaoded with the following statement.  
 
 ```python
 bb.pull('tox21')
 ```
 
-Once the dataset is stored locally in the BioBricks library, you can load the data with `bb.load` function.
+Once the dataset is stored locally in the BioBricks library, the data can be loaded with `bb.load` function.
 
 ```python
 tox21 = bb.load('tox21')
@@ -57,7 +57,7 @@ for tablename in tablenames:
     print(tablename)
 ```
 
-You can also check the avaible table with the autocomplete functionality in your python editor.
+The list of avaible tables can be visulized with the autocomplete functionality in your python editor.
 
 To convert a pyarrow table to a pandas data frame use the following statement:
 
