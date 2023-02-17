@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "biobricks"
-version = "0.0.33"
+version = "0.0.34"
 authors = [
   { name="Jose A. Jaramillo", email="jjv@utp.edu.co" },
   { name="Thomas Luechtefeld", email="tom@insilica.co" }
@@ -27,3 +27,6 @@ dependencies = [
 [project.urls]
 "Homepage" = "https://github.com/biobricks-ai/biobricks"
 "Bug Tracker" = "https://github.com/biobricks-ai/biobricks/issues"
+
+[project.scripts]
+kiln = "biobricks:kiln"
