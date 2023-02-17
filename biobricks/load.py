@@ -9,7 +9,7 @@ def load(brick,org="biobricks-ai"):
         raise Exception(f"no path '{bdir}' try `biobricks.pull({brick})`")
        
     def dirns(dir: Path):
-        filter = lambda d: d.is_dir() and d.name.endswith('.parquet')
+        filter = lambda d: d.name.endswith('.parquet')
         paths = [d for d in dir.rglob('*') if filter(d)]
         namespace = types.SimpleNamespace()
         pkey = lambda p: re.sub(r'[.-]','_',p)
