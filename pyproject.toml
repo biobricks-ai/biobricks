@@ -21,7 +21,8 @@ dependencies = [
   'pyarrow',
   'dvc',
   'pytest-cov',
-  'logger'
+  'logger',
+  'click'
 ]
 
 [project.urls]
@@ -29,4 +30,4 @@ dependencies = [
 "Bug Tracker" = "https://github.com/biobricks-ai/biobricks/issues"
 
 [project.scripts]
-kiln = "biobricks:kiln"
+biobricks = "biobricks.cli:cli"
