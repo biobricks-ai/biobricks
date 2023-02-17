@@ -3,6 +3,7 @@ import types, pyarrow.parquet as pq, re
 from pathlib import Path
 from logger import logger
 
+# TODO add nested namespace support
 def load(brick,org="biobricks-ai"):
     bdir = bblib() / org / brick
     if not bdir.exists(): 

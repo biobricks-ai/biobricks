@@ -2,6 +2,9 @@ name: Biobricks codecov
 
 on: [push, pull_request]
 
+env:
+  BIOBRICKS_TEST_TOKEN: ${{ secrets.BIOBRICKS_TEST_TOKEN }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
