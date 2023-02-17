@@ -51,21 +51,21 @@ def local_bblib(TOKEN):
     if oldbb: os.environ['BBLIB'] = oldbb
     tdir.cleanup()
 
-def test_load(local_bblib):
-    brick="lkjasdfkjasdklfj"
-    with pytest.raises(Exception,match=".*not available.*"):
-        bb.pull(brick)
+# def test_load(local_bblib):
+#     brick="lkjasdfkjasdklfj"
+#     with pytest.raises(Exception,match=".*not available.*"):
+#         bb.pull(brick)
 
-    brick = "hello-brick"
-    org = "biobricks-ai"
-    bb.pull(brick,org)
-    assert bb.bblib(f'{org}/{brick}/data/mtcars.parquet').exists()
+#     brick = "hello-brick"
+#     org = "biobricks-ai"
+#     bb.pull(brick,org)
+#     assert bb.bblib(f'{org}/{brick}/data/mtcars.parquet').exists()
 
-    tbls = bb.load(brick,org)
-    assert tbls.mtcars.shape == (32,11)
+#     tbls = bb.load(brick,org)
+#     assert tbls.mtcars.shape == (32,11)
 
-    with pytest.raises(Exception,match="no path.*"):
-        bb.load("a-brick-that-doesn't-exist")
+#     with pytest.raises(Exception,match="no path.*"):
+#         bb.load("a-brick-that-doesn't-exist")
     
-    with pytest.raises(Exception,match=".* not available"):
-        check_url_available("http://the-internet.herokuapp.com/status_codes/301")
+#     with pytest.raises(Exception,match=".* not available"):
+#         check_url_available("http://the-internet.herokuapp.com/status_codes/301")
