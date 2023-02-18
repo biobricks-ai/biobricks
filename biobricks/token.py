@@ -13,12 +13,12 @@ def update_token(token,name="default"):
 
 def check_token(token):
     """verify that the token is a valid biobricks.ai token"""
-    url = f"https://members.biobricks.ai/token/is_valid?token={token}"
+    url = f"https://biobricks.ai/token/is_valid?token={token}"
     try:
         is_valid = json.loads(urllib.request.urlopen(url).read())
         if not is_valid: raise ValueError(f"""invalid token. 
             - update token with `biobricks.update_token`.
-            - get your token at https://members.biobricks.ai""")
+            - get your token at https://biobricks.ai/token""")
     except Exception as e:
         raise Exception(f"error validating token.") from e
     

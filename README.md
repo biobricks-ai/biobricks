@@ -12,7 +12,7 @@ pip install biobricks
 
 # initialize
 To initialize BioBricks you must set the `BBLIB` environmental variable and get a user token.
-1. **`TOKEN`:** register at [members.biobricks.ai](https://members.biobricks.ai/register) then go to [members.biobricks.ai/token](https://members.biobricks.ai/token)
+1. **`TOKEN`:** register at [biobricks.ai](https://biobricks.ai/register) then go to [biobricks.ai/token](https://biobricks.ai/token)
 2. **`BBLIB`:** Set this to a path on your local file system with plenty of space for large bricks
 
 ```python

@@ -22,7 +22,7 @@ def TOKEN():
     return os.environ["BIOBRICKS_TEST_TOKEN"]
 
 def test_initialize(BBLIB,TOKEN):
-    errmsg = "must use token from https://members.biobricks.ai/token"
+    errmsg = "must use token from https://biobricks.ai/token"
     with pytest.raises(Exception,match=errmsg) as e:
         bb.initialize()
 
