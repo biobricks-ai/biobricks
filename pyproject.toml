@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "biobricks"
-version = "0.1.38"
+version = "0.1.39"
 authors = [
   { name="Jose A. Jaramillo", email="jjv@utp.edu.co" },
   { name="Thomas Luechtefeld", email="tom@insilica.co" }

@@ -27,14 +27,16 @@ def configure():
         bblib = click.prompt("Choose path to store bricks", type=click.Path())
 
     # initialize credentials (default to existing token)
+    deftoken = "skip to use free token"
     if config.keys() >= {"TOKEN"} and click.confirm(f"use current token (see {path})?"):
         token = config["TOKEN"]
     else:
-        token = click.prompt("what is your token (https://biobricks.ai/token)?", hide_input=True)
-
-    while not check_token(token, silent=True):
+        token = click.prompt("what is your biobricks.ai/token?", hide_input=True, default = deftoken)
+    
+    while token != deftoken and not check_token(token, silent=True):
         click.echo(click.style("invalid token. check your token at https://biobricks.ai/token", fg="red"))
-        token = click.prompt("what is your token?")
+        token = click.prompt("what is your biobricks.ai token?",hide_input=True, default=deftoken)
+    token = "VQF6Q2U-NKktZ31ioVYa9w" if token == deftoken else token
     click.echo()
 
     # write configuration

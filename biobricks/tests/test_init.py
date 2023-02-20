@@ -18,8 +18,8 @@ def BBLIB():
 
 @pytest.fixture
 def TOKEN():
-    "this is the tom+test@insilica.co test token. Also stored as github secret"
-    return os.environ["BIOBRICKS_TEST_TOKEN"]
+    "this is the admin+free@insilica.co test token"
+    return "VQF6Q2U-NKktZ31ioVYa9w"
 
 @pytest.fixture
 def EMPTY_BBLIB():

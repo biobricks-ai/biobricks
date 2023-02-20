@@ -46,7 +46,7 @@ def pull(brick,org="biobricks-ai"):
     parquet_paths = [x for x in paths if x.endswith('.parquet')]
 
     logger.info(f"pulling brick assets")
-    run(f"dvc pull -j 4 {' '.join(parquet_paths)}",cwd=bblib(repo),shell=True)
+    run(f"dvc pull {' '.join(parquet_paths)}",cwd=bblib(repo),shell=True)
     
     logger.info(f"Brick \033[91m{brick}\033[0m succesfully downloaded to BioBricks library.")
     return True
