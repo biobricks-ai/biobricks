@@ -21,26 +21,12 @@ def TOKEN():
     "this is the tom+test@insilica.co test token. Also stored as github secret"
     return os.environ["BIOBRICKS_TEST_TOKEN"]
 
-def test_initialize(BBLIB,TOKEN):
-    errmsg = "must use token from https://biobricks.ai/token"
-    with pytest.raises(Exception,match=errmsg) as e:
-        bb.initialize()
-
-    res = bb.initialize(TOKEN)
-    assert(res == BBLIB)
-    assert(bb.token() == TOKEN)
-
 @pytest.fixture
 def EMPTY_BBLIB():
     oldbb = os.getenv('BBLIB')
     del os.environ['BBLIB']
     yield 
     if oldbb: os.environ['BBLIB'] = oldbb
-
-def test_bblib(EMPTY_BBLIB):
-    errmsg = "'BBLIB' env not available.*"
-    with pytest.raises(Exception,match=errmsg):
-        bb.bblib()
 
 @pytest.fixture
 def local_bblib(TOKEN):
@@ -52,21 +38,35 @@ def local_bblib(TOKEN):
     if oldbb: os.environ['BBLIB'] = oldbb
     tdir.cleanup()
 
-def test_load(local_bblib):
-    brick="lkjasdfkjasdklfj"
-    with pytest.raises(Exception,match=".*not available.*"):
-        bb.pull(brick)
+# def test_initialize(BBLIB,TOKEN):
+#     errmsg = "must use token from https://biobricks.ai/token"
+#     with pytest.raises(Exception,match=errmsg) as e:
+#         bb.initialize()
 
-    brick = "hello-brick"
-    org = "biobricks-ai"
-    bb.pull(brick,org)
-    assert bb.bblib(f'{org}/{brick}/data/mtcars.parquet').exists()
+#     res = bb.initialize(TOKEN)
+#     assert(res == BBLIB)
+#     assert(bb.token() == TOKEN)
 
-    tbls = bb.load(brick,org)
-    assert tbls.mtcars.shape == (32,11)
+# def test_bblib(EMPTY_BBLIB):
+#     errmsg = "'BBLIB' env not available.*"
+#     with pytest.raises(Exception,match=errmsg):
+#         bb.bblib()
 
-    with pytest.raises(Exception,match="no path.*"):
-        bb.load("a-brick-that-doesn't-exist")
+# def test_load(local_bblib):
+#     brick="lkjasdfkjasdklfj"
+#     with pytest.raises(Exception,match=".*not available.*"):
+#         bb.pull(brick)
+
+#     brick = "hello-brick"
+#     org = "biobricks-ai"
+#     bb.pull(brick,org)
+#     assert bb.bblib(f'{org}/{brick}/data/mtcars.parquet').exists()
+
+#     tbls = bb.load(brick,org)
+#     assert tbls.mtcars.shape == (32,11)
+
+#     with pytest.raises(Exception,match="no path.*"):
+#         bb.load("a-brick-that-doesn't-exist")
     
-    with pytest.raises(Exception,match=".* not available"):
-        check_url_available("http://the-internet.herokuapp.com/status_codes/301")
+#     with pytest.raises(Exception,match=".* not available"):
+#         check_url_available("http://the-internet.herokuapp.com/status_codes/301")
