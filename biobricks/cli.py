@@ -24,8 +24,7 @@ def configure():
     if config.keys() >= {"BBLIB"} and click.confirm(f"use current BBLIB '{config['BBLIB']}'?", default=True):
         bblib = config["BBLIB"]
     else:
-
-        bblib = click.prompt("Choose path to store bricks", type=click.Path(exists=False))
+        bblib = click.prompt("Choose path to store bricks", type=click.Path())
 
     # initialize credentials (default to existing token)
     if config.keys() >= {"TOKEN"} and click.confirm(f"use current token (see {path})?"):

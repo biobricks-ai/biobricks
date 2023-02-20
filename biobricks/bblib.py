@@ -1,5 +1,5 @@
 import os, warnings, json, urllib
-from subprocess import run, DEVNULL
+from subprocess import run, DEVNULL, STDOUT
 from pathlib import Path
 
 def read_config():
