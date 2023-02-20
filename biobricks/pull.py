@@ -38,6 +38,11 @@ def pull(brick,org="biobricks-ai"):
     rsys("dvc remote modify --local biobricks.ai custom_auth_header BBToken")
     rsys("dvc remote modify --local biobricks.ai read_timeout 300")
     rsys("dvc remote modify --local biobricks.ai connect_timeout 300")
+
+    # check if this is a windows system
+    if os.name == 'nt':
+        rsys("dvc config cache.type hardlink,softlink")
+
     rsys(f"dvc remote modify --local biobricks.ai password {token()}")
 
     logger.info(f"discovering brick assets dvc.biobricks.ai")
