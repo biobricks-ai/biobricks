@@ -36,6 +36,8 @@ def pull(brick,org="biobricks-ai"):
     rsys("dvc remote add -f biobricks.ai https://dvc.biobricks.ai")
     rsys("dvc remote modify --local biobricks.ai auth custom")
     rsys("dvc remote modify --local biobricks.ai custom_auth_header BBToken")
+    rsys("dvc remote modify --local biobricks.ai read_timeout 300")
+    rsys("dvc remote modify --local biobricks.ai connect_timeout 300")
     rsys(f"dvc remote modify --local biobricks.ai password {token()}")
 
     logger.info(f"discovering brick assets dvc.biobricks.ai")
@@ -44,7 +46,7 @@ def pull(brick,org="biobricks-ai"):
     parquet_paths = [x for x in paths if x.endswith('.parquet')]
 
     logger.info(f"pulling brick assets")
-    run(f"dvc pull {' '.join(parquet_paths)}",cwd=bblib(repo),shell=True)
+    run(f"dvc pull -j 4 {' '.join(parquet_paths)}",cwd=bblib(repo),shell=True)
     
     logger.info(f"Brick \033[91m{brick}\033[0m succesfully downloaded to BioBricks library.")
     return True
