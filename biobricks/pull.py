@@ -41,7 +41,7 @@ def pull(brick,org="biobricks-ai"):
 
     # check if this is a windows system
     if os.name == 'nt':
-        rsys("dvc config cache.type hardlink,softlink")
+        rsys("dvc config cache.type copy")
 
     rsys(f"dvc remote modify --local biobricks.ai password {token()}")
 

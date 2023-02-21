@@ -1,10 +1,12 @@
 from biobricks import bblib, pull
 import pathlib as pl, pkg_resources, yaml
+from brick import Brick
 
 def bb_init(location=".bb"):
 
     dotbb = pl.Path(location)
-    if dotbb.exists(): return
+    if dotbb.exists(): 
+        return
     dotbb.mkdir()
     
     # get package verfsion
@@ -31,7 +33,13 @@ def bb_import(brick,org="biobricks-ai",location=".bb"):
     localdir.symlink_to(brickdir,target_is_directory=True)
 
     # write a line to the config file recording this import
+    brick = Brick.fromlib(brick,org)
     with open(pl.Path(location) / "config", "a") as f:
-        f.write(f"{org}/{brick}")
+        f.write(brick.url())
     
-        
+def bb_install(location=".bb"):
+    """install all the bricks in the .bb directory"""
+    with open(pl.Path(location) / "config") as f:
+        for line in f:
+            brick = Brick.fromurl(line)
+            brick.install()
