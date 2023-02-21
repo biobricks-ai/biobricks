@@ -34,7 +34,7 @@ def bb_import(brick,org="biobricks-ai",location=".bb"):
 
     # write a line to the config file recording this import
     brick = Brick.fromlib(brick,org)
-    with open(pl.Path(location) / "config", "a") as f:
+    with open(pl.Path(location) / "dependencies.txt", "a") as f:
         f.write(brick.url())
     
 def bb_install(location=".bb"):
