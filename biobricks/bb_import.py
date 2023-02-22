@@ -1,6 +1,5 @@
-from biobricks import bblib, pull
+from biobricks import bblib
 import pathlib as pl, pkg_resources, yaml
-from brick import Brick
 
 def bb_init(location=".bb"):
 
@@ -18,8 +17,8 @@ def bb_init(location=".bb"):
         f.write("/*/") # ignore all subdirectories
         
 
-def bb_import(brick,org="biobricks-ai",location=".bb"):
-
+def bb_import(ref,location=".bb"):
+    # TODO this is broken
     if(pl.Path(location).exists() == False):
         raise Exception(".bb not found. run `bb init` first.")
     

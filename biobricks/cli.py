@@ -4,7 +4,9 @@ import biobricks as bb
 import click
 from logger import logger
 from pathlib import Path
-from .bblib import read_config, write_config, init_bblib, check_token
+from .config import read_config, write_config, init_bblib
+from .checks import check_token
+from .brick import Brick
 
 @click.group()
 def cli():
@@ -59,13 +61,13 @@ def import_(brick,org="biobricks-ai",location=".bb"):
     bb.bb_import(brick,org,location)
 
 @cli.command(help="Install a data dependency into $BBLIB")
-@click.argument('args', nargs=-1)
-def install(args):
-    bb.pull(*args)
+@click.argument("ref",type=str)
+def install(ref):
+    return Brick.Resolve(ref, force_remote=True).install()
 
 @cli.command(help="Show the status of BBLIB")
 def status():
-    logger.info("BBLIB: " + str(bb.bblib()))
+    print("BBLIB: " + str(bb.bblib()))
 
 if __name__ == "__main__":
     cli()

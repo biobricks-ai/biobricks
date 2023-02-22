@@ -36,3 +36,29 @@ tox21.tox21_ache_p4.to_pandas() # get a pyarrow Table and convert to pandas data
 ```
 
 To list the bricks currently available visit [github.com/biobricks-ai](https://github.com/biobricks-ai)
+
+# How does this all work?
+
+Installing biobricks creates a BBLIB directory with a .cache subdirectory and many commit hashes representing bricks. The .cache directory is managed by dvc and stores the brick assets that are symlinked in bricks. The commit hashes are git repos referenced by their sha. The structure looks like this:
+
+```
+BBLIB/
+    .cache/ # managed by dvc, stores brick assets symlinked in bricks
+    74aed53360e5a278931b2f8eac0702f28fd444e4/ # a git repo 
+    0aeb15ffa06be6c43ec5b654f6a8ff6ea4fa2bef/ # a git repo 
+    ...
+```
+
+When writing code it is desirable to load brick assets by repository names, org/repo syntax, or by commit hash. For example, to load biobricks tox21 you could use:
+
+```python
+import biobricks as bb
+
+# Load the 'latest' version of the brick
+tox21 = bb.load("tox21") 
+tox21 = bb.load("biobricks-ai/tox21")
+
+# Load a specific version
+tox21 = bb.load("biobricks-ai/tox21/74aed53360e5a278931b2f8eac0702f28fd444e4")
+tox21 = bb.load("https://github.com/biobricks-ai/tox21#74aed53360e5a278931b2f8eac0702f28fd444e4")
+```

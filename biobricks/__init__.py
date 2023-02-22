@@ -1,4 +1,3 @@
-from .bblib import *
-from .pull import pull, uninstall
-from .load import load
+from .config import *
 from .bb_import import bb_import, bb_init
+from .brick import Brick

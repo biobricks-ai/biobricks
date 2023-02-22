@@ -36,12 +36,4 @@ def token_url():
 def token():
     if read_config().keys() >= {"TOKEN"}: return read_config()["TOKEN"]
     raise Exception("no token. run `biobricks configure` to set your token")
-
-def check_token(token, silent=False):
-    """verify that the token is a valid biobricks.ai token"""
-    url = f"https://biobricks.ai/token/is_valid?token={token}"
-    is_valid = json.loads(urllib.request.urlopen(url).read())
-    if not is_valid and not silent: 
-        raise ValueError(f"Invalid token. Run `biobricks configure`")
-    return is_valid
     
