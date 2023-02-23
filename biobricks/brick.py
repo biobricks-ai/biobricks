@@ -5,7 +5,9 @@ from pathlib import Path
 from .config import bblib, token
 from logger import logger
 import os, urllib.request as request, functools, dvc.api
-from .checks import check_url_available, check_token
+from urllib.parse import urlparse
+
+from .checks import check_url_available, check_token, check_symlink_permission
 
 class Brick:
 
@@ -38,11 +40,11 @@ class Brick:
 
     @staticmethod
     def Resolve(ref, force_remote=False):
-        """find all bricks matching ref. 
-        `ref` can be:
-        existing  name ie. 'tox21'
-        git-url syntax ie. 'https://github.com/biobricks-ai/tox21#commit'
+        """find all bricks matching ref. `ref` can be:
+            - existing  name ie. 'tox21'
+            - git-url syntax ie. 'https://github.com/biobricks-ai/tox21#commit'
         if `force_remote` is True then retrieve brick from remote repository"""
+        # TODO this should resolve from the .bb directory when in a biobrick repo
 
         # if name matches remote#commit then resolve from url        
         if re.match("^http.*[0-9a-f]{40}$",ref):
@@ -83,15 +85,19 @@ class Brick:
 
     def url(self):
         return f"{self.remote}#{self.commit}"
+    
+    def urlpath(self):
+        return urlparse(self.url()).path
 
     def path(self):
-        return bblib() / self.commit
+        return bblib() / self.urlpath() / self.commit
 
     def install(self):
         "install this brick"
         logger.info(f"running checks on brick")
         check_url_available(self.remote)
         check_token(token())
+        check_symlink_permission()
 
         if bblib(self.commit).exists():
             logger.info(f"\033[91m{self.url}\033[0m already exists in BioBricks library.")
@@ -117,10 +123,6 @@ class Brick:
         rsys("dvc remote modify --local biobricks.ai read_timeout 300")
         rsys("dvc remote modify --local biobricks.ai connect_timeout 300")
 
-        # check if this is a windows system
-        if os.name == 'nt':
-            rsys("dvc config cache.type copy")
-
         rsys(f"dvc remote modify --local biobricks.ai password {token()}")
 
         logger.info(f"discovering brick assets dvc.biobricks.ai")
@@ -132,7 +134,7 @@ class Brick:
         run(f"dvc pull {' '.join(parquet_paths)}",cwd=bblib() / self.commit,shell=True)
         
         logger.info(f"\033[91m{self.url()}\033[0m succesfully downloaded to BioBricks library.")
-        return True
+        return self
     
     def load(self):
         "load this brick"

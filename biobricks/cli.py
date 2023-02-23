@@ -4,6 +4,7 @@ import biobricks as bb
 import click
 from logger import logger
 from pathlib import Path
+import pathlib as pl, yaml, pkg_resources
 from .config import read_config, write_config, init_bblib
 from .checks import check_token
 from .brick import Brick
@@ -54,11 +55,32 @@ def configure():
 
 @cli.command(help="Initialize a .bb directory for data dependencies")
 def init():
-    bb.bb_init()
+    location = ".bb"
+    dotbb = pl.Path(location)
+    if dotbb.exists():
+        return
+    dotbb.mkdir()
+    
+    with open(dotbb / ".gitignore", "w") as f: 
+        f.write("/*/") # ignore all subdirectories
 
 @cli.command(name="import",help="Import a data dependency into the .bb directory")
-def import_(brick,org="biobricks-ai",location=".bb"):
-    bb.bb_import(brick,org,location)
+def import_(ref):
+    location = ".bb"
+    if(Path(location).exists() == False):
+        raise Exception(".bb not found. run `biobricks init` first.")
+    
+    brick : Brick = install(ref) 
+    
+    localpath = Path(location) / brick.urlpath()
+    localpath.mkdir(parents=True, exist_ok=True)
+
+    brick.path().symlink_to(localpath, target_is_directory=True)
+
+    # write a line to the dependencies file recording this import
+    with open(pl.Path(location) / "dependencies.txt", "a") as f:
+        f.write(f"{brick.urlpath()}\t{brick.commit}")
+
 
 @cli.command(help="Install a data dependency into $BBLIB")
 @click.argument("ref",type=str)
