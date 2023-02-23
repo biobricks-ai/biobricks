@@ -33,10 +33,15 @@ class Brick:
     @staticmethod
     def FromRemote(remote):
         """Get the version of a brick from its git repo."""
-        logger.info(f"getting latest version of {remote}")
-        commit = subprocess.check_output(f'git ls-remote "{remote}" HEAD', shell=True)
-        commit = commit.decode().strip().split()[0]
-        return Brick(remote, commit)
+        try:
+            logger.info(f"getting latest version of {remote}")
+            commit = subprocess.check_output(f'git ls-remote "{remote}" HEAD', shell=True)
+            commit = commit.decode().strip().split()[0]
+            return Brick(remote, commit)
+        except subprocess.CalledProcessError as e:
+            logger.error(f"failed to get latest version of {remote}: {e}")
+            logger.error(f"is {remote} a valid git repository?")
+            return None
 
     @staticmethod
     def Resolve(ref, force_remote=False):
@@ -50,6 +55,10 @@ class Brick:
         if re.match("^http.*[0-9a-f]{40}$",ref):
             return Brick.FromURL(ref)
         
+        # if name matches remote then resolve from remote
+        if re.match("^http.*$",ref):
+            return Brick.FromRemote(ref)
+        
         # otherwise resolve to https://github.com/biobricks-ai/<name>
         remote = f"https://github.com/biobricks-ai/{ref}"
 
@@ -58,13 +67,15 @@ class Brick:
 
         # retrieve from library if it exists
         bricks = []
-        for bdir in bblib().iterdir():
-            logger.info(f"checking {bdir.name} for {ref}")
-            # if the directory is a sha hash then add it to brick array
-            if bdir.is_dir() and re.match("[0-9a-f]{40}$",bdir.name):
-                brick = Brick.FromPath(bdir)
-                if remote == brick.remote:
-                    bricks.append(brick)
+        bdir = bblib() / "biobricks-ai" / ref
+        if bdir.exists():
+            for bdir in (bblib() / "biobricks-ai" / ref).iterdir():
+                logger.info(f"checking {bdir.name} for {ref}")
+                # if the directory is a sha hash then add it to brick array
+                if bdir.is_dir() and re.match("[0-9a-f]{40}$",bdir.name):
+                    brick = Brick.FromPath(bdir)
+                    if remote == brick.remote:
+                        bricks.append(brick)
         
         # sort the bricks by their commit_date
         bricks.sort(key=lambda b: b.get_commit_date(), reverse=True)
@@ -87,10 +98,14 @@ class Brick:
         return f"{self.remote}#{self.commit}"
     
     def urlpath(self):
-        return urlparse(self.url()).path
+        return Path(urlparse(self.url()).path[1:])
 
     def path(self):
         return bblib() / self.urlpath() / self.commit
+
+    def _relpath(self):
+        "get the path to this brick relative to bblib"
+        return self.urlpath() / self.commit
 
     def install(self):
         "install this brick"
@@ -106,7 +121,8 @@ class Brick:
         cmd = functools.partial(run,shell=True,stdout=DEVNULL,stderr=DEVNULL)
         
         # old way - cmd(f"git submodule add {self.remote} {self.repo}",cwd=bblib())
-        cmd(f"git clone {self.remote} {self.commit}", cwd = bblib())
+        logger.info(f"git clone {self.remote} {self._relpath()} in {bblib()}")
+        cmd(f"git clone {self.remote} {self._relpath()}", cwd = bblib())
         cmd(f"git checkout {self.commit}", cwd = self.path())
 
         logger.info(f"adding brick to dvc cache")
@@ -131,7 +147,7 @@ class Brick:
         parquet_paths = [x for x in paths if x.endswith('.parquet')]
 
         logger.info(f"pulling brick assets")
-        run(f"dvc pull {' '.join(parquet_paths)}",cwd=bblib() / self.commit,shell=True)
+        run(f"dvc pull {' '.join(parquet_paths)}", cwd=self.path(), shell=True)
         
         logger.info(f"\033[91m{self.url()}\033[0m succesfully downloaded to BioBricks library.")
         return self
@@ -169,10 +185,7 @@ class Brick:
         return types.SimpleNamespace(**result)
     
     def uninstall(brick,org="biobricks-ai"):
-        # TODO this doesn't work
-        "completely remove submodule (see https://stackoverflow.com/questions/1260748/how-do-i-remove-a-submodule)"
-        repo = f"{org}/{brick}"
-        
+        "uninstall this brick"
         os.system(f"cd {bblib()}; git rm -f {repo}")
         os.system(f"cd {bblib()}; rm -rf .git/modules/{repo}")
         os.system(f"cd {bblib()}; git config --remove-section submodule.{repo}")

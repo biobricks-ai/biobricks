@@ -64,23 +64,36 @@ def init():
     with open(dotbb / ".gitignore", "w") as f: 
         f.write("/*/") # ignore all subdirectories
 
-@cli.command(name="import",help="Import a data dependency into the .bb directory")
-def import_(ref):
-    location = ".bb"
-    if(Path(location).exists() == False):
+def local_bblib():
+    return Path(".bb")
+
+def check_has_local_bblib():
+    if not local_bblib().exists():
         raise Exception(".bb not found. run `biobricks init` first.")
-    
-    brick : Brick = install(ref) 
-    
-    localpath = Path(location) / brick.urlpath()
+
+def symlink_local_brick(brick):
+    check_has_local_bblib()
+    localpath = local_bblib() / brick.urlpath()
     localpath.mkdir(parents=True, exist_ok=True)
 
     brick.path().symlink_to(localpath, target_is_directory=True)
 
     # write a line to the dependencies file recording this import
-    with open(pl.Path(location) / "dependencies.txt", "a") as f:
-        f.write(f"{brick.urlpath()}\t{brick.commit}")
+    with open(local_bblib() / "dependencies.txt", "a") as f:
+        f.write(f"{brick.url()}")
 
+@cli.command(name="import",help="Import a data dependency into the .bb directory")
+def import_(ref):
+    check_has_local_bblib()
+    brick : Brick = install(ref) 
+    symlink_local_brick(brick)
+    
+@cli.command(name="pull", help="install all the local dependencies")
+def pull():
+    check_has_local_bblib()
+    with open(local_bblib() / "dependencies.txt", "r") as f:
+        for line in f.readlines():
+            Brick.FromURL(line).install()
 
 @cli.command(help="Install a data dependency into $BBLIB")
 @click.argument("ref",type=str)
