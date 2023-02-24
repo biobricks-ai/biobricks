@@ -82,8 +82,8 @@ def symlink_local_brick(brick):
     with open(local_bblib() / "dependencies.txt", "a") as f:
         f.write(f"{brick.url()}")
 
-@cli.command(name="import",help="Import a data dependency into the .bb directory")
-def import_(ref):
+@cli.command(name="add",help="Import a data dependency into the .bb directory")
+def add(ref):
     check_has_local_bblib()
     brick : Brick = install(ref) 
     symlink_local_brick(brick)
