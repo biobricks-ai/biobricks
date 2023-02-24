@@ -34,11 +34,11 @@ def configure():
     if config.keys() >= {"TOKEN"} and click.confirm(f"use current token (see {path})?"):
         token = config["TOKEN"]
     else:
-        token = click.prompt("what is your biobricks.ai/token?", hide_input=True, default = deftoken)
+        token = click.prompt("Input a token from biobricks.ai/token", hide_input=True, default = deftoken)
     
     while token != deftoken and not check_token(token, silent=True):
         click.echo(click.style("invalid token. check your token at https://biobricks.ai/token", fg="red"))
-        token = click.prompt("what is your biobricks.ai token?",hide_input=True, default=deftoken)
+        token = click.prompt("Input a token from biobricks.ai/token",hide_input=True, default=deftoken)
     token = "VQF6Q2U-NKktZ31ioVYa9w" if token == deftoken else token
     click.echo()
 
