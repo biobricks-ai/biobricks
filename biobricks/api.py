@@ -1,5 +1,6 @@
 from .brick import Brick
 from .cli import cli
+from .checks import check_configured()
 
 def load(brick):
     """Load a brick from the local filesystem"""

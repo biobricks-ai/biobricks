@@ -28,3 +28,14 @@ def check_symlink_permission():
         return True
     except Exception as e:
         raise PermissionError("Need Symlink Permission. Contact administrator and see https://dvc.org/doc/user-guide/how-to/run-dvc-on-windows#enable-symbolic-links.")
+
+def check_configured():
+    """check that biobricks is configured"""
+    try:
+        from .config import read_config, check_has_bblib
+        if not read_config(): raise Exception("no config")
+        if not check_has_bblib(): raise Exception("no bblib")
+        if not check_token(read_config()["TOKEN"], silent=True): raise Exception("invalid token")
+        return True
+    except Exception as e:
+        raise Exception("biobricks not configured. run `biobricks configure`") from e

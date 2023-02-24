@@ -4,36 +4,12 @@ import pathlib
 import tempfile
 
 import biobricks as bb
-from ..pull import check_url_available
-from unittest.mock import Mock
 
 @pytest.fixture
-def BBLIB():
+def CONFIG():
     oldbb = os.getenv('BBLIB')
     tdir  = tempfile.TemporaryDirectory()
     os.environ['BBLIB'] = tdir.name
-    yield pathlib.Path(tdir.name)
-    if oldbb: os.environ['BBLIB'] = oldbb
-    tdir.cleanup()
-
-@pytest.fixture
-def TOKEN():
-    "this is the admin+free@insilica.co test token"
-    return "VQF6Q2U-NKktZ31ioVYa9w"
-
-@pytest.fixture
-def EMPTY_BBLIB():
-    oldbb = os.getenv('BBLIB')
-    del os.environ['BBLIB']
-    yield 
-    if oldbb: os.environ['BBLIB'] = oldbb
-
-@pytest.fixture
-def local_bblib(TOKEN):
-    oldbb = os.getenv('BBLIB')
-    tdir  = tempfile.TemporaryDirectory()
-    os.environ['BBLIB'] = tdir.name
-    bb.initialize(TOKEN)
     yield pathlib.Path(tdir.name)
     if oldbb: os.environ['BBLIB'] = oldbb
     tdir.cleanup()
