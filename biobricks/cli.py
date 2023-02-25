@@ -17,7 +17,7 @@ class Sect:
     GLOBAL = cloup.Section(
         'GLOBAL: Commands to modify configuration and globally installed bricks')
     BRICK = cloup.Section(
-        'BRICK: Commands to help build a new brick and manage local dependencies')
+        'LOCAL: Commands to help build a new brick and manage local dependencies')
 
 @cli.command(help="configure biobricks with a token and filesystem path",
              section=Sect.GLOBAL)
