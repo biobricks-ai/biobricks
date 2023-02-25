@@ -1,7 +1,7 @@
 import sys
 import os
 import biobricks as bb
-import click
+import click, cloup
 from logger import logger
 from pathlib import Path
 import pathlib as pl, yaml, pkg_resources
@@ -9,11 +9,18 @@ from .config import read_config, write_config, init_bblib
 from .checks import check_token
 from .brick import Brick
 
-@click.group()
+@cloup.group('biobricks')
 def cli():
     pass
 
-@cli.command(help="configure biobricks with a token and filesystem path")
+class Sect:
+    GLOBAL = cloup.Section(
+        'GLOBAL: Commands to modify configuration and globally installed bricks')
+    BRICK = cloup.Section(
+        'BRICK: Commands to help build a new brick and manage local dependencies')
+
+@cli.command(help="configure biobricks with a token and filesystem path",
+             section=Sect.GLOBAL)
 def configure():
 
     path = Path.home().joinpath(".biobricks")
@@ -53,7 +60,8 @@ def configure():
     click.echo(click.style(msg, fg="green"))
 
 
-@cli.command(help="Initialize a .bb directory for data dependencies")
+@cli.command(help="Initialize a .bb directory for data dependencies",
+             section=Sect.BRICK)
 def init():
     location = ".bb"
     dotbb = pl.Path(location)
@@ -82,27 +90,35 @@ def symlink_local_brick(brick):
     with open(local_bblib() / "dependencies.txt", "a") as f:
         f.write(f"{brick.url()}")
 
-@cli.command(name="add",help="Import a data dependency into the .bb directory")
+@cli.command(name="add",
+    help="Import a data dependency into the .bb directory",
+    section=Sect.BRICK)
 def add(ref):
     check_has_local_bblib()
     brick : Brick = install(ref) 
     symlink_local_brick(brick)
     
-@cli.command(name="pull", help="install all the local dependencies")
+@cli.command(name="pull", help="install all the local dependencies",
+    section=Sect.BRICK)
 def pull():
     check_has_local_bblib()
     with open(local_bblib() / "dependencies.txt", "r") as f:
         for line in f.readlines():
             Brick.FromURL(line).install()
 
-@cli.command(help="Install a data dependency into $BBLIB")
+@cli.command(help="Install a data dependency into $BBLIB",
+    section=Sect.GLOBAL)
 @click.argument("ref",type=str)
 def install(ref):
     return Brick.Resolve(ref, force_remote=True).install()
 
-@cli.command(help="Show the status of BBLIB")
+@cli.command(help="Show the status of the local brick",
+    section=Sect.BRICK)
 def status():
     print("BBLIB: " + str(bb.bblib()))
+    # print the dependencies file
+    with open(local_bblib() / "dependencies.txt", "r") as f:
+        print(f.read())
 
 if __name__ == "__main__":
     cli()
