@@ -127,7 +127,7 @@ class Brick:
 
         logger.info(f"adding brick to dvc cache")
         rsys = functools.partial(cmd,cwd=self.path())
-        rsys("dvc cache dir ../cache")
+        rsys(f"dvc cache dir {bblib() / 'cache'}")
         rsys("dvc config cache.shared group")
         rsys("dvc config cache.type symlink")
 
