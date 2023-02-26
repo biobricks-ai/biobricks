@@ -149,7 +149,7 @@ class Brick:
         logger.info(f"pulling brick assets")
         run(f"dvc pull {' '.join(parquet_paths)}", cwd=self.path(), shell=True)
         
-        logger.info(f"\033[91m{self.url()}\033[0m succesfully downloaded to BioBricks library.")
+        logger.info(f"\033[94m{self.url()}\033[0m succesfully downloaded to BioBricks library.")
         return self
     
     def load(self):
