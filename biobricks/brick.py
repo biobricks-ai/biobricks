@@ -156,7 +156,7 @@ class Brick:
         "load this brick"
         bdir = self.path()
         if not bdir.exists(): 
-            raise Exception(f"no path '{bdir}' try `biobricks.pull({brick})`")
+            raise Exception(f"no path '{bdir}' try `biobricks install({self.url()})`")
         
         def dirns(dir: Path):
             filter = lambda d: d.name.endswith('.parquet')
@@ -183,6 +183,19 @@ class Brick:
         ns2 = dirns(bdir / 'brick')
         result = {**ns2.__dict__, **ns1.__dict__}
         return types.SimpleNamespace(**result)
+    
+    def assets(self):
+        "get the assets for this brick"
+        bdir = self.path()
+        if not bdir.exists(): 
+            raise Exception(f"no path '{bdir}' try `biobricks install({self.url()})`")
+        
+        def dirns(dir: Path):
+            filter = lambda d: d.name.endswith('.parquet')
+            paths = [d for d in dir.rglob('*') if filter(d)]
+            return paths
+
+        return dirns(bdir / 'data') + dirns(bdir / 'brick') 
     
     def uninstall(brick,org="biobricks-ai"):
         "uninstall this brick"
