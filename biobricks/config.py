@@ -4,7 +4,7 @@ from pathlib import Path
 
 def read_config():
     path = Path.home().joinpath(".biobricks")
-    if not path.exists(): return 
+    if not path.exists(): return {}
     return json.loads(path.read_text())
 
 def write_config(config):

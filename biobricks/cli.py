@@ -14,40 +14,44 @@ def cli():
     pass
 
 class Sect:
-    GLOBAL = cloup.Section(
-        'GLOBAL: Commands to modify configuration and globally installed bricks')
-    BRICK = cloup.Section(
-        'LOCAL: Commands to help build a new brick and manage local dependencies')
+    GLOBAL = cloup.Section('GLOBAL: modify global config and installed bricks')
+    BRICK = cloup.Section('LOCAL: build new bricks and manage their dependencies')
 
-@cli.command(help="configure biobricks with a token and filesystem path",
-             section=Sect.GLOBAL)
-def configure():
+@cli.command(help="configure brick path and token",section=Sect.GLOBAL)
+@click.option("--bblib", default=None, type=click.Path(), help="path to store bricks")
+@click.option("--token", default=None, help="biobricks.ai/token auth token")
+@click.option("--overwrite", default=False, help="overwrite existing config?")
+def configure(bblib, token, overwrite):
 
     path = Path.home().joinpath(".biobricks")
-    config = {}
+    config = read_config()
 
-    if path.exists():
-        config = read_config()
-        if not click.confirm(click.style("WARNING: overwrite existing config?", fg="red")): sys.exit(0)
+    # CHECK IF CONFIG WILL OVERWRITE EXISTING
+    msg = click.style("WARNING: overwrite existing config?", fg="red")
+    if path.exists() and not overwrite and not click.confirm(msg):
+        sys.exit(0)
     
-    # get bblib (default to existing bblib)
-    if config.keys() >= {"BBLIB"} and click.confirm(f"use current BBLIB '{config['BBLIB']}'?", default=True):
+    # BBLIB PROMPT - DEFAULT TO EXISTING
+    conmsg = lambda: f"use current BBLIB '{bblib or config['BBLIB']}'?"
+    if not bblib and config.keys() >= {"BBLIB"} and click.confirm(conmsg(), default=True):
         bblib = config["BBLIB"]
-    else:
+    elif not bblib:
         bblib = click.prompt("Choose path to store bricks", type=click.Path())
 
-    # initialize credentials (default to existing token)
-    deftoken = "skip to use free token"
-    if config.keys() >= {"TOKEN"} and click.confirm(f"use current token (see {path})?"):
+    # TOKEN PROMPT - DEFAULT TO EXISTING AND THEN FREE TOKEN
+    deftoken = "skip for temporary token"
+    conmsg = f"use current token defined at '{path}'?"
+    if not token and config.keys() >= {"TOKEN"} and click.confirm(conmsg):
         token = config["TOKEN"]
-    else:
-        token = click.prompt("Input a token from biobricks.ai/token", hide_input=True, default = deftoken)
-    
+    elif not token:
+        msg = "Copy token from biobricks.ai/token"
+        token = click.prompt(msg, hide_input=True, default = deftoken)
+
+    # VALIDATE TOKEN    
     while token != deftoken and not check_token(token, silent=True):
         click.echo(click.style("invalid token. check your token at https://biobricks.ai/token", fg="red"))
         token = click.prompt("Input a token from biobricks.ai/token",hide_input=True, default=deftoken)
     token = "VQF6Q2U-NKktZ31ioVYa9w" if token == deftoken else token
-    click.echo()
 
     # write configuration
     config = { "BBLIB": bblib, "TOKEN": token }
