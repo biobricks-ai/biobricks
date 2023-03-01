@@ -156,7 +156,7 @@ class Brick:
         "load this brick"
         bdir = self.path()
         if not bdir.exists(): 
-            raise Exception(f"no path '{bdir}' try `biobricks install({self.url()})`")
+            raise Exception(f"no path '{bdir}' try `biobricks install {self.url()}`")
         
         def dirns(dir: Path):
             filter = lambda d: d.name.endswith('.parquet')
@@ -188,7 +188,7 @@ class Brick:
         "get the assets for this brick"
         bdir = self.path()
         if not bdir.exists(): 
-            raise Exception(f"no path '{bdir}' try `biobricks install({self.url()})`")
+            raise Exception(f"no path '{bdir}' try `biobricks install {self.url()}`")
         
         def dirns(dir: Path):
             filter = lambda d: d.name.endswith('.parquet')
