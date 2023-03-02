@@ -197,9 +197,7 @@ class Brick:
 
         return dirns(bdir / 'data') + dirns(bdir / 'brick') 
     
-    def uninstall(brick,org="biobricks-ai"):
+    def uninstall(self):
         "uninstall this brick"
-        os.system(f"cd {bblib()}; git rm -f {repo}")
-        os.system(f"cd {bblib()}; rm -rf .git/modules/{repo}")
-        os.system(f"cd {bblib()}; git config --remove-section submodule.{repo}")
+        os.rmdir(self.path())
         
