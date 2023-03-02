@@ -86,20 +86,20 @@ def check_has_local_bblib():
 def symlink_local_brick(brick):
     check_has_local_bblib()
     localpath = local_bblib() / brick.urlpath()
-    localpath.mkdir(parents=True, exist_ok=True)
-
-    brick.path().symlink_to(localpath, target_is_directory=True)
-
+    localpath.parent.mkdir(parents=True, exist_ok=True)
+    os.symlink(brick.path(), localpath)
+    
     # write a line to the dependencies file recording this import
     with open(local_bblib() / "dependencies.txt", "a") as f:
-        f.write(f"{brick.url()}")
+        f.write(f"{brick.url()}\n")
 
 @cli.command(name="add",
     help="Import a data dependency into the .bb directory",
     section=Sect.BRICK)
+@click.argument("ref",type=str)
 def add(ref):
     check_has_local_bblib()
-    brick : Brick = install(ref) 
+    brick : Brick = Brick.Resolve(ref, force_remote=True).install()
     symlink_local_brick(brick)
     
 @cli.command(name="pull", help="install all the local dependencies",
