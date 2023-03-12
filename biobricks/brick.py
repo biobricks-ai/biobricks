@@ -170,7 +170,7 @@ class Brick:
                 for part in path.parts:
                     key = pkey(part)
                     if not hasattr(current, key) and part.endswith('.parquet'):
-                        setattr(current, key[:-8], pq.read_table(str(p)))
+                        setattr(current, key[:-8], pq.ParquetFile(str(p)))
                     elif not hasattr(current, key):
                         setattr(current, key, types.SimpleNamespace())
                         current = getattr(current, key)
