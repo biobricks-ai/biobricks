@@ -190,12 +190,16 @@ class Brick:
         if not bdir.exists(): 
             raise Exception(f"no path '{bdir}' try `biobricks install {self.url()}`")
         
-        def dirns(dir: Path):
-            filter = lambda d: d.name.endswith('.parquet')
-            paths = [d for d in dir.rglob('*') if filter(d)]
-            return paths
-
-        return dirns(bdir / 'data') + dirns(bdir / 'brick') 
+        def find_parquet_files(directory):
+            if not directory.exists():
+                return []
+            for entry in os.scandir(directory):
+                if entry.name.endswith('.parquet'):
+                    yield entry.path
+                elif entry.is_dir():
+                    yield from find_parquet_files(entry.path)
+                
+        return list(find_parquet_files(bdir / 'data')) + list(find_parquet_files(bdir / 'brick'))
     
     def uninstall(self):
         "uninstall this brick"
