@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "biobricks"
-version = "0.1.55"
+version = "0.1.56"
 authors = [
   { name="Jose A. Jaramillo", email="jjv@utp.edu.co" },
   { name="Thomas Luechtefeld", email="tom@insilica.co" }
@@ -19,7 +19,7 @@ classifiers = [
 ]
 dependencies = [
   'pyarrow',
-  'dvc',
+  'dvc[all]',
   'pytest-cov',
   'logger',
   'click',
