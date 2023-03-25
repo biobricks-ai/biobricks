@@ -6,7 +6,7 @@ from logger import logger
 from pathlib import Path
 import pathlib as pl, yaml, pkg_resources
 from .config import read_config, write_config, init_bblib
-from .checks import check_token
+from .checks import check_token, check_version
 from .brick import Brick
 
 @cloup.group('biobricks')
@@ -125,4 +125,9 @@ def status():
         print(f.read())
 
 if __name__ == "__main__":
+    try:
+        check_version()
+    except:
+        pass
+    
     cli()
