@@ -1,10 +1,8 @@
-import sys
-import os
+import sys, os
 import biobricks as bb
 import click, cloup
 from logger import logger
 from pathlib import Path
-import pathlib as pl, yaml, pkg_resources
 from .config import read_config, write_config, init_bblib
 from .checks import check_token, check_version
 from .brick import Brick
@@ -64,11 +62,16 @@ def configure(bblib, token, overwrite):
     click.echo(click.style(msg, fg="green"))
 
 
+@cli.command(help="Install a data dependency into $BBLIB", section=Sect.GLOBAL)
+@click.argument("ref",type=str)
+def install(ref):
+    return Brick.Resolve(ref, force_remote=True).install()
+
 @cli.command(help="Initialize a .bb directory for data dependencies",
              section=Sect.BRICK)
 def init():
     location = ".bb"
-    dotbb = pl.Path(location)
+    dotbb = Path(location)
     if dotbb.exists():
         return
     dotbb.mkdir()
@@ -109,12 +112,6 @@ def pull():
     with open(local_bblib() / "dependencies.txt", "r") as f:
         for line in f.readlines():
             Brick.FromURL(line).install()
-
-@cli.command(help="Install a data dependency into $BBLIB",
-    section=Sect.GLOBAL)
-@click.argument("ref",type=str)
-def install(ref):
-    return Brick.Resolve(ref, force_remote=True).install()
 
 @cli.command(help="Show the status of the local brick",
     section=Sect.BRICK)
