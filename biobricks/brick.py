@@ -14,6 +14,7 @@ class Brick:
     def __init__(self, remote, commit):
         self.remote = remote
         self.commit = commit
+        self.name = remote.split("/")[-1]
     
     @staticmethod
     def FromURL(url):
@@ -44,7 +45,7 @@ class Brick:
             return None
 
     @staticmethod
-    def Resolve(ref, force_remote=False):
+    def Resolve(ref:str, force_remote=False):
         """find all bricks matching ref. `ref` can be:
             - existing  name ie. 'tox21'
             - git-url syntax ie. 'https://github.com/biobricks-ai/tox21#commit'

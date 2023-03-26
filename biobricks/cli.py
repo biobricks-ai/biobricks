@@ -6,6 +6,7 @@ from pathlib import Path
 from .config import read_config, write_config, init_bblib
 from .checks import check_token, check_version
 from .brick import Brick
+from .local_bb import LocalBB
 
 @cloup.group('biobricks')
 def cli():
@@ -61,7 +62,6 @@ def configure(bblib, token, overwrite):
     msg = f"Done! BioBricks has BBLIB {bblib} and config {path}"
     click.echo(click.style(msg, fg="green"))
 
-
 @cli.command(help="Install a data dependency into $BBLIB", section=Sect.GLOBAL)
 @click.argument("ref",type=str)
 def install(ref):
@@ -86,27 +86,14 @@ def check_has_local_bblib():
     if not local_bblib().exists():
         raise Exception(".bb not found. run `biobricks init` first.")
 
-def symlink_local_brick(brick):
-    check_has_local_bblib()
-    localpath = local_bblib() / brick.urlpath()
-    localpath.parent.mkdir(parents=True, exist_ok=True)
-    os.symlink(brick.path(), localpath)
-    
-    # write a line to the dependencies file recording this import
-    with open(local_bblib() / "dependencies.txt", "a") as f:
-        f.write(f"{brick.url()}\n")
-
-@cli.command(name="add",
-    help="Import a data dependency into the .bb directory",
-    section=Sect.BRICK)
+@cli.command(name="add", help="Import a data dependency", section=Sect.BRICK)
 @click.argument("ref",type=str)
 def add(ref):
     check_has_local_bblib()
-    brick : Brick = Brick.Resolve(ref, force_remote=True).install()
-    symlink_local_brick(brick)
+    localbb = LocalBB.FromPath(os.getcwd())
+    localbb.add_dependency(ref)
     
-@cli.command(name="pull", help="install all the local dependencies",
-    section=Sect.BRICK)
+@cli.command(name="pull", help="install local dependencies", section=Sect.BRICK)
 def pull():
     check_has_local_bblib()
     with open(local_bblib() / "dependencies.txt", "r") as f:
