@@ -22,6 +22,7 @@ biobricks configure
 To download a brick and save it locally in your library use `bb.pull`. An example using the Tox21 dataset:  
 
 ```python
+import biobricks as bb
 bb.install('tox21') # save the brick to the brick library and download it's resources
 tox21 = bb.load('tox21') # load a SimpleNamespace with all the brick tables
 
