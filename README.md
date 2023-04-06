@@ -30,7 +30,7 @@ tox21 = bb.load('tox21') # load a SimpleNamespace with all the brick tables
 for tablename in sorted(list(vars(tox21).keys())):
     print(tablename)
     
-tox21.tox21_ache_p4.to_pandas() # get a pyarrow Table and convert to pandas dataframe
+tox21.tox21_ache_p4.read().to_pandas() # get a pyarrow Table and convert to pandas dataframe
 ```
 
 To list the bricks currently available visit [github.com/biobricks-ai](https://github.com/biobricks-ai)
