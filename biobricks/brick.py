@@ -148,6 +148,8 @@ class Brick:
         parquet_paths = [x for x in paths if x.endswith('.parquet')]
 
         logger.info(f"pulling brick assets")
+        # TODO dvc currently queries the cache which involves big md5 calculations
+        # instead we should use the dvc api to pull the files directly
         run(f"dvc pull {' '.join(parquet_paths)}", cwd=self.path(), shell=True)
         
         logger.info(f"\033[94m{self.url()}\033[0m succesfully downloaded to BioBricks library.")

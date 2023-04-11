@@ -34,5 +34,5 @@ class LocalBB():
     
     # add dependency to the dependencies file
     with open(self.dependencies_path, "a") as f:
-      f.write(f"{brickref.url}\n")
+      f.write(f"{brickref.url()}\n")
   
