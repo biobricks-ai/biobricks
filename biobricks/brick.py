@@ -50,8 +50,7 @@ class Brick:
             - existing  name ie. 'tox21'
             - git-url syntax ie. 'https://github.com/biobricks-ai/tox21#commit'
         if `force_remote` is True then retrieve brick from remote repository"""
-        # TODO this should resolve from the .bb directory when in a biobrick repo
-
+        
         # if name matches remote#commit then resolve from url        
         if re.match("^http.*[0-9a-f]{40}$",ref):
             return Brick.FromURL(ref)
@@ -111,13 +110,14 @@ class Brick:
     def install(self):
         "install this brick"
         logger.info(f"running checks on brick")
-        check_url_available(self.remote)
-        check_token(token())
-        check_symlink_permission()
-
+        
         if bblib(self.commit).exists():
             logger.info(f"\033[91m{self.url}\033[0m already exists in BioBricks library.")
             return True
+        
+        check_url_available(self.remote)
+        check_token(token())
+        check_symlink_permission()
 
         cmd = functools.partial(run,shell=True,stdout=DEVNULL,stderr=DEVNULL)
         

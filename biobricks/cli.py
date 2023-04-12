@@ -96,10 +96,9 @@ def add(ref):
 @cli.command(name="pull", help="install local dependencies", section=Sect.BRICK)
 def pull():
     check_has_local_bblib()
-    with open(local_bblib() / "dependencies.txt", "r") as f:
-        for line in f.readlines():
-            Brick.FromURL(line).install()
-
+    lbb = LocalBB.FromPath(os.getcwd())
+    lbb.install_dependencies()
+    
 @cli.command(help="Show the status of the local brick",
     section=Sect.BRICK)
 def status():
