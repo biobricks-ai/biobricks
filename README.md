@@ -15,7 +15,7 @@ To get started configure biobricks with a path for bricks and a biobricks.ai tok
 ```
 biobricks configure
 > Choose path to store bricks: <input a local path>
-> Input a token from biobrick.ai/token: <this is your access token>
+> Input a token from biobricks.ai/token: <this is your access token>
 ```
 
 # Pull Bricks
