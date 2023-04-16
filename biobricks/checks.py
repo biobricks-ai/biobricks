@@ -3,15 +3,6 @@ import json, urllib
 import os, tempfile, uuid, requests, pkg_resources
 from pathlib import Path
     
-def check_version():
-    current_version = pkg_resources.get_distribution('biobricks').version
-    pypi_url = 'https://pypi.org/pypi/biobricks/json'
-    response = requests.get(pypi_url)
-    latest_version = response.json()['info']['version']
-    if current_version != latest_version:
-        print(f"""A new version ({latest_version}) of biobricks is available. 
-              Please upgrade using 'pip install --upgrade biobricks'""")
-
 def check_url_available(url):
     try:
         code = request.urlopen(url).getcode()

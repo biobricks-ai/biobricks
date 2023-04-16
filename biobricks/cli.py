@@ -1,10 +1,10 @@
 import sys, os
 import biobricks as bb
-import click, cloup
+import click, cloup, pkg_resources, requests
 from logger import logger
 from pathlib import Path
 from .config import read_config, write_config, init_bblib
-from .checks import check_token, check_version
+from .checks import check_token
 from .brick import Brick
 from .local_bb import LocalBB
 
@@ -106,11 +106,17 @@ def status():
     # print the dependencies file
     with open(local_bblib() / "dependencies.txt", "r") as f:
         print(f.read())
-
-if __name__ == "__main__":
-    try:
-        check_version()
-    except:
-        pass
+        
+@cli.command(help="Get version and check for updates", section=Sect.GLOBAL)
+def version():
+    current_version = pkg_resources.get_distribution('biobricks').version
+    response = requests.get('https://pypi.org/pypi/biobricks/json')
+    latest_version = response.json()['info']['version']
+    if current_version != latest_version:
+        print(f"\nA new version ({latest_version}) of biobricks is available. " 
+              f"\nPlease upgrade using 'pip install --upgrade biobricks'\n")
+    else:
+        print(f"biobricks version {current_version} is up to date.")
     
+if __name__ == "__main__":
     cli()
