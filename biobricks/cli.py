@@ -78,6 +78,11 @@ def init():
     
     with open(dotbb / ".gitignore", "w") as f: 
         f.write("/*/") # ignore all subdirectories
+        
+    # create file dotbb/dependencies.txt with no contents
+    with open(dotbb / "dependencies.txt", "w") as f: 
+        pass
+    
 
 def local_bblib():
     return Path(".bb")
