@@ -161,31 +161,13 @@ class Brick:
         if not bdir.exists(): 
             raise Exception(f"no path '{bdir}' try `biobricks install {self.url()}`")
         
-        def dirns(dir: Path):
-            filter = lambda d: d.name.endswith('.parquet')
-            paths = [d for d in dir.rglob('*') if filter(d)]
-            namespace = types.SimpleNamespace()
-            pkey = lambda p: re.sub(r'[.-]','_',p)
-            for p in paths:
-                path = p.relative_to(dir)
-                logger.info(f"loading {path}...")
-                current = namespace
-                for part in path.parts:
-                    key = pkey(part)
-                    if not hasattr(current, key) and part.endswith('.parquet'):
-                        setattr(current, key[:-8], pq.ParquetDataset(str(p)))
-                    elif not hasattr(current, key):
-                        setattr(current, key, types.SimpleNamespace())
-                        current = getattr(current, key)
-                    elif hasattr(current, key):
-                        current = getattr(current, key)
-            logger.info(f"loaded {len(paths)} tables from {dir}")
-            return namespace
-
-        ns1 = dirns(bdir / 'data')
-        ns2 = dirns(bdir / 'brick')
-        result = {**ns2.__dict__, **ns1.__dict__}
-        return types.SimpleNamespace(**result)
+        # get assets and strip .parquet from assets to make names
+        assets = [Path(p) for p in self.assets()]
+        names = [p.with_suffix('').name for p in assets]
+        
+        # make a simple namespace using names as keys and loading assets with pq.ParquetDataset
+        ds = [pq.ParquetDataset(str(p)) for p in assets]
+        return types.SimpleNamespace(**dict(zip(names, ds)))
     
     def assets(self):
         "get the assets for this brick"
