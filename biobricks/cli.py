@@ -30,6 +30,9 @@ def configure(bblib, token, overwrite):
     if path.exists() and not overwrite and not click.confirm(msg):
         sys.exit(0)
     
+    # EMAIL PROMPT 
+    email = click.prompt("Choose Email", type=click.Path())
+
     # BBLIB PROMPT - DEFAULT TO EXISTING
     conmsg = lambda: f"use current BBLIB '{bblib or config['BBLIB']}'?"
     if not bblib and config.keys() >= {"BBLIB"} and click.confirm(conmsg(), default=True):
@@ -53,7 +56,7 @@ def configure(bblib, token, overwrite):
     token = "VQF6Q2U-NKktZ31ioVYa9w" if token == deftoken else token
 
     # write configuration
-    config = { "BBLIB": bblib, "TOKEN": token }
+    config = { "BBLIB": bblib, "TOKEN": token, "EMAIL": email }
     write_config(config)
 
     # initialize bblib
