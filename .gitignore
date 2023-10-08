@@ -11,3 +11,5 @@ env/
 
 # ignore codecov
 .coverage*
+
+scratch.py
