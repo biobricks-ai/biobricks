@@ -3,10 +3,10 @@ from subprocess import run, DEVNULL
 import types, pyarrow.parquet as pq, re
 from pathlib import Path
 from .config import bblib, token
-from logger import logger
+from .logger import logger
 import os, urllib.request as request, functools, dvc.api
 from urllib.parse import urlparse
-
+import sys
 from .checks import check_url_available, check_token, check_symlink_permission
 
 class Brick:
@@ -41,8 +41,8 @@ class Brick:
             return Brick(remote, commit)
         except subprocess.CalledProcessError as e:
             logger.error(f"failed to get latest version of {remote}: {e}")
-            logger.error(f"is {remote} a valid git repository?")
-            return None
+            raise RuntimeError(f"Failed to get the latest version of {remote}. Is {remote} a valid git repository?")
+
 
     @staticmethod
     def Resolve(ref:str, force_remote=False):
@@ -150,7 +150,7 @@ class Brick:
         logger.info(f"pulling brick assets")
         # TODO dvc currently queries the cache which involves big md5 calculations
         # instead we should use the dvc api to pull the files directly
-        run(f"dvc pull {' '.join(parquet_paths)}", cwd=self.path(), shell=True)
+        run(f"dvc pull {' '.join(parquet_paths)}", cwd=self.path(), shell=True, stdout=sys.stderr)
         
         logger.info(f"\033[94m{self.url()}\033[0m succesfully downloaded to BioBricks library.")
         return self

@@ -30,23 +30,24 @@ class LocalBB():
     return [Brick.Resolve(line) for line in lines]
   
   def add_dependency(self, ref: str):
-    """add a dependency to the local bb dependencies file"""
-    
-    brickref = Brick.Resolve(ref)
-    
-    # check if the added dependency already exists
-    bricknames = [brick.name for brick in self.get_depencies()]
-    
-    if brickref.name in bricknames:
-      # TODO suggest update if updated version of ref exists
-      print(f"'{brickref.name}' already exists, to update:")
-      print(f"\trun `biobricks remove {brickref.name}`")
-      print(f"\tand `biobricks add {brickref.name}`")
-      return
-    
-    # add dependency to the dependencies file
-    with open(self.dependencies_path, "a") as f:
-      f.write(f"{brickref.url()}\n")
+      """add a dependency to the local bb dependencies file"""
+      
+      brickref = Brick.Resolve(ref)
+      
+      # check if the added dependency already exists
+      bricknames = [brick.name for brick in self.get_depencies()]
+      
+      if brickref.name in bricknames:
+          raise ValueError(
+              f"'{brickref.name}' already exists. To update, run:\n"
+              f"\t`biobricks remove {brickref.name}`\n"
+              f"\tand then `biobricks add {brickref.name}`"
+          )
+      
+      # add dependency to the dependencies file
+      with open(self.dependencies_path, "a") as f:
+          f.write(f"{brickref.url()}\n")
+
   
   def install_dependencies(self):
     """install all dependencies"""
