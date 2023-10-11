@@ -13,3 +13,4 @@ env/
 .coverage*
 
 scratch.py
+scratch.R

@@ -70,6 +70,11 @@ def configure(bblib, token, overwrite):
 def install(ref):
     return Brick.Resolve(ref, force_remote=True).install()
 
+@cli.command(help="Uninstall a data dependency", section=Sect.GLOBAL)
+@click.argument("ref",type=str)
+def uninstall(ref):
+    return Brick.Resolve(ref).uninstall()
+
 @cli.command(help="Initialize a .bb directory for data dependencies",
              section=Sect.BRICK)
 def init():

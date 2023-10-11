@@ -182,7 +182,7 @@ class Brick:
                 if entry.name.endswith('.parquet'):
                     yield entry.path
                 elif entry.is_dir():
-                    yield from find_parquet_files(entry.path)
+                    yield from find_parquet_files(Path(entry.path))
                 
         return list(find_parquet_files(bdir / 'data')) + list(find_parquet_files(bdir / 'brick'))
     
