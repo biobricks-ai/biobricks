@@ -17,19 +17,17 @@ biobricks configure
 > Input a token from biobricks.ai/token: <this is your access token>
 ```
 
-# Pull Bricks
-To download a brick and save it locally in your library use `bb.pull`. An example using the Tox21 dataset:  
+# Install and Use Bricks
 
+To install a brick the command line command:
+```sh
+> biobricks install tox21
+```
+
+You can then use the brick in python as below:
 ```python
 import biobricks as bb
-bb.install('tox21') # save the brick to the brick library and download it's resources
-tox21 = bb.load('tox21') # load a SimpleNamespace with all the brick tables
-
-# List the resources in the brick
-for tablename in sorted(list(vars(tox21).keys())):
-    print(tablename)
-    
-tox21.tox21_ache_p4.read().to_pandas() # get a pyarrow Table and convert to pandas dataframe
+bb.assets('tox21') # get the paths for the 'tox21' brick
 ```
 
 To list the bricks currently available visit [github.com/biobricks-ai](https://github.com/biobricks-ai)

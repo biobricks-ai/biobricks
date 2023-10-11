@@ -65,7 +65,7 @@ def configure(bblib, token, overwrite):
     msg = f"Done! BioBricks has BBLIB {bblib} and config {path}"
     click.echo(click.style(msg, fg="green"))
 
-@cli.command(help="Install a data dependency into $BBLIB", section=Sect.GLOBAL)
+@cli.command(help="Install a data dependency", section=Sect.GLOBAL)
 @click.argument("ref",type=str)
 def install(ref):
     return Brick.Resolve(ref, force_remote=True).install()
