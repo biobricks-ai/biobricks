@@ -3,15 +3,10 @@ from .cli import cli
 from .checks import check_configured
 import requests, json 
 
-def load(brick):
-    """Load a brick from the local filesystem"""
-    check_configured()
-    return Brick.Resolve(brick).load()
-
 def assets(brick):
     """List the paths of the assets of a brick"""
     check_configured()
-    return [str(x) for x in Brick.Resolve(brick).assets()]
+    return Brick.Resolve(brick).assets()
 
 def path(brick):
     check_configured()

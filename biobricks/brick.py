@@ -155,20 +155,6 @@ class Brick:
         logger.info(f"\033[94m{self.url()}\033[0m succesfully downloaded to BioBricks library.")
         return self
     
-    def load(self):
-        "load this brick"
-        bdir = self.path()
-        if not bdir.exists(): 
-            raise Exception(f"no path '{bdir}' try `biobricks install {self.url()}`")
-        
-        # get assets and strip .parquet from assets to make names
-        assets = [Path(p) for p in self.assets()]
-        names = [p.with_suffix('').name for p in assets]
-        
-        # make a simple namespace using names as keys and loading assets with pq.ParquetDataset
-        ds = [pq.ParquetDataset(str(p)) for p in assets]
-        return types.SimpleNamespace(**dict(zip(names, ds)))
-    
     def assets(self):
         "get the assets for this brick"
         bdir = self.path()
@@ -183,9 +169,13 @@ class Brick:
                     yield entry.path
                 elif entry.is_dir():
                     yield from find_parquet_files(Path(entry.path))
-                
-        return list(find_parquet_files(bdir / 'data')) + list(find_parquet_files(bdir / 'brick'))
-    
+                else:
+                    yield entry.path
+        
+        assets = list(find_parquet_files(bdir / 'brick'))
+        names = {os.path.splitext(os.path.basename(path))[0]: path for path in assets} 
+        return types.SimpleNamespace(**names)
+
     def uninstall(self):
         "uninstall this brick"
         os.rmdir(self.path())
