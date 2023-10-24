@@ -1,4 +1,4 @@
-import sys, os
+import sys, os, types
 import biobricks as bb
 import click, cloup, pkg_resources, requests
 from .logger import logger
@@ -75,6 +75,13 @@ def install(ref):
 def uninstall(ref):
     return Brick.Resolve(ref).uninstall()
 
+@cli.command(help="List assets in a data dependency", section=Sect.GLOBAL)
+@click.argument("ref",type=str)
+def assets(ref):
+    assets : types.SimpleNamespace = Brick.Resolve(ref).assets()
+    for key, value in vars(assets).items():
+        click.echo(f"{key}: {value}")
+
 @cli.command(help="Initialize a .bb directory for data dependencies",
              section=Sect.BRICK)
 def init():
@@ -90,7 +97,6 @@ def init():
     # create file dotbb/dependencies.txt with no contents
     with open(dotbb / "dependencies.txt", "w") as f: 
         pass
-    
 
 def local_bblib():
     return Path(".bb")
@@ -126,10 +132,8 @@ def version():
     response = requests.get('https://pypi.org/pypi/biobricks/json')
     latest_version = response.json()['info']['version']
     if current_version != latest_version:
-        click.echo(f"\nA new version ({latest_version}) of biobricks is available. " 
-              f"\nPlease upgrade using 'pip install --upgrade biobricks'\n")
-    else:
-        click.echo(f"biobricks version {current_version} is up to date.")
+        logger.warning(f"upgrade to {latest_version} with 'pip install --upgrade biobricks'")
+    click.echo(f"local_version: {current_version}\nlatest_version: {latest_version}")
     
 if __name__ == "__main__":
     cli()

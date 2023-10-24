@@ -11,6 +11,8 @@ from .checks import check_url_available, check_token, check_symlink_permission
 
 class Brick:
 
+    ALLOWED_FILETYPES = ['.parquet','.sqlite','.hdt']
+    
     def __init__(self, remote, commit):
         self.remote = remote
         self.commit = commit
@@ -70,7 +72,7 @@ class Brick:
         bdir = bblib() / "biobricks-ai" / ref
         if bdir.exists():
             for bdir in (bblib() / "biobricks-ai" / ref).iterdir():
-                logger.info(f"checking {bdir.name} for {ref}")
+                logger.debug(f"checking {bdir.name} for {ref}")
                 # if the directory is a sha hash then add it to brick array
                 if bdir.is_dir() and re.match("[0-9a-f]{40}$",bdir.name):
                     brick = Brick.FromPath(bdir)
@@ -143,14 +145,23 @@ class Brick:
         rsys(f"dvc remote modify --local biobricks.ai password {token()}")
 
         logger.info(f"discovering brick assets dvc.biobricks.ai")
+        
+        def find_allowed_files(fs, dir_path, allowed_filetypes):
+            files = []
+            for file_path in fs.listdir(dir_path):
+                if any(file_path.endswith(ext) for ext in allowed_filetypes):
+                    files.append(file_path)
+                elif fs.isdir(file_path):
+                    files.extend(find_allowed_files(fs, file_path, allowed_filetypes))
+            return files
+        
         fs = dvc.api.DVCFileSystem(self.path())
-        paths = fs.find("data",maxdepth=1) + fs.find("brick",maxdepth=1)
-        parquet_paths = [x for x in paths if x.endswith('.parquet')]
+        allowed_paths = find_allowed_files(fs, "data", Brick.ALLOWED_FILETYPES)
 
         logger.info(f"pulling brick assets")
         # TODO dvc currently queries the cache which involves big md5 calculations
         # instead we should use the dvc api to pull the files directly
-        run(f"dvc pull {' '.join(parquet_paths)}", cwd=self.path(), shell=True, stdout=sys.stderr)
+        run(f"dvc pull {' '.join(allowed_paths)}", cwd=self.path(), shell=True, stdout=sys.stderr)
         
         logger.info(f"\033[94m{self.url()}\033[0m succesfully downloaded to BioBricks library.")
         return self
@@ -161,20 +172,22 @@ class Brick:
         if not bdir.exists(): 
             raise Exception(f"no path '{bdir}' try `biobricks install {self.url()}`")
         
-        def find_parquet_files(directory):
+        def find_files_with_allowed_extensions(directory, parent_path=''):
             if not directory.exists():
-                return []
+                return {}
+            
+            result = {}
             for entry in os.scandir(directory):
-                if entry.name.endswith('.parquet'):
-                    yield entry.path
+                relative_name = os.path.relpath(entry.path, start=bdir / 'brick')
+                if any(entry.name.endswith(ext) for ext in Brick.ALLOWED_FILETYPES):
+                    result[relative_name.replace('/', '.').replace('\\', '.')] = entry.path
                 elif entry.is_dir():
-                    yield from find_parquet_files(Path(entry.path))
-                else:
-                    yield entry.path
-        
-        assets = list(find_parquet_files(bdir / 'brick'))
-        names = {os.path.splitext(os.path.basename(path))[0]: path for path in assets} 
-        return types.SimpleNamespace(**names)
+                    result.update(find_files_with_allowed_extensions(Path(entry.path), parent_path=relative_name))
+            
+            return result
+
+        assets = find_files_with_allowed_extensions(bdir / 'brick')
+        return types.SimpleNamespace(**assets)
 
     def uninstall(self):
         "uninstall this brick"
