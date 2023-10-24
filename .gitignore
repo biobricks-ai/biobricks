@@ -14,3 +14,6 @@ env/
 
 scratch.py
 scratch.R
+
+.env
+codecov
