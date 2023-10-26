@@ -10,7 +10,7 @@ import sys
 from .checks import check_url_available, check_token, check_symlink_permission
 
 class Brick:
-
+    
     ALLOWED_FILETYPES = ['.parquet','.sqlite','.hdt']
     
     def __init__(self, remote, commit):
@@ -167,27 +167,35 @@ class Brick:
         return self
     
     def assets(self):
-        "get the assets for this brick"
-        bdir = self.path()
-        if not bdir.exists(): 
-            raise Exception(f"no path '{bdir}' try `biobricks install {self.url()}`")
-        
-        def find_files_with_allowed_extensions(directory, parent_path=''):
-            if not directory.exists():
+        """Get the assets for this brick."""
+        brick_dir = self.path()
+
+        if not brick_dir.exists():
+            raise Exception(f"No path '{brick_dir}'. Try `biobricks install {self.url()}`")
+
+        def collect_allowed_files(target_dir):
+            """Recursively collect files with allowed extensions."""
+            if not target_dir.exists():
                 return {}
             
-            result = {}
-            for entry in os.scandir(directory):
-                relative_name = os.path.relpath(entry.path, start=bdir / 'brick')
+            collected_files = {}
+            for entry in os.scandir(target_dir):
+                rel_path = os.path.relpath(entry.path, start=brick_dir / 'brick')
                 if any(entry.name.endswith(ext) for ext in Brick.ALLOWED_FILETYPES):
-                    result[relative_name.replace('/', '.').replace('\\', '.')] = entry.path
+                    collected_files[rel_path] = entry.path
                 elif entry.is_dir():
-                    result.update(find_files_with_allowed_extensions(Path(entry.path), parent_path=relative_name))
+                    collected_files.update(collect_allowed_files(Path(entry.path)))
             
-            return result
+            return collected_files
 
-        assets = find_files_with_allowed_extensions(bdir / 'brick')
-        return types.SimpleNamespace(**assets)
+        assets_dict = collect_allowed_files(brick_dir / 'brick')
+
+        # Post-process the keys
+        process = lambda key: key.replace('/', '_').replace('\\', '_').replace('.', '_')
+        assets_dict = {process(key): value for key, value in assets_dict.items()}
+
+        
+        return types.SimpleNamespace(**assets_dict)
 
     def uninstall(self):
         "uninstall this brick"
