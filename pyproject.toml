@@ -6,8 +6,8 @@ build-backend = "hatchling.build"
 name = "biobricks"
 version = "0.2.0"
 authors = [
-  { name="Jose A. Jaramillo", email="jjv@utp.edu.co" },
-  { name="Thomas Luechtefeld", email="tom@insilica.co" }
+  { name="Thomas Luechtefeld", email="tom@insilica.co" },
+  { name="Jose A. Jaramillo", email="jjv@utp.edu.co" }
 ]
 description = "Biobricks automates bioinformatics data."
 readme = "README.md"
@@ -26,7 +26,7 @@ dependencies = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/biobricks-ai/biobricks"
+"Documentation" = "https://docs.biobricks.ai"
 "Bug Tracker" = "https://github.com/biobricks-ai/biobricks/issues"
 
 [project.scripts]
