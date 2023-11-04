@@ -48,6 +48,26 @@ class LocalBB():
       with open(self.dependencies_path, "a") as f:
           f.write(f"{brickref.url()}\n")
 
+  def remove_dependency(self, ref: str):
+      """Remove a dependency from the local bb dependencies file."""
+      
+      brickref = Brick.Resolve(ref)
+      
+      # Check if the dependency exists before attempting to remove it
+      current_dependencies = self.get_depencies()
+      bricknames = [brick.name for brick in current_dependencies]
+      
+      if brickref.name not in bricknames:
+          raise ValueError(f"'{brickref.name}' does not exist in the dependencies.")
+      
+      # Create a new list excluding the dependency to be removed
+      new_dependencies = [brick for brick in current_dependencies if brick.name != brickref.name]
+      
+      # Write the new list back to the dependencies file
+      with open(self.dependencies_path, "w") as f:
+          for brick in new_dependencies:
+              f.write(f"{brick.url()}\n")
+
   
   def install_dependencies(self):
     """install all dependencies"""

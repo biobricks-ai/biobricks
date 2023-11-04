@@ -111,6 +111,13 @@ def add(ref):
     check_has_local_bblib()
     localbb = LocalBB.FromPath(os.getcwd())
     localbb.add_dependency(ref)
+
+@cli.command(name="remove", help="Remove a data dependency", section=Sect.BRICK)
+@click.argument("ref",type=str)
+def remove(ref):
+    check_has_local_bblib()
+    localbb = LocalBB.FromPath(os.getcwd())
+    localbb.remove_dependency(ref)
     
 @cli.command(name="pull", help="install local dependencies", section=Sect.BRICK)
 def pull():
