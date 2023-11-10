@@ -123,7 +123,6 @@ class Brick:
 
         cmd = functools.partial(run,shell=True,stdout=DEVNULL,stderr=DEVNULL)
         
-        # old way - cmd(f"git submodule add {self.remote} {self.repo}",cwd=bblib())
         logger.info(f"git clone {self.remote} {self._relpath()} in {bblib()}")
         cmd(f"git clone {self.remote} {self._relpath()}", cwd = bblib())
         cmd(f"git checkout {self.commit}", cwd = self.path())
@@ -146,22 +145,14 @@ class Brick:
 
         logger.info(f"discovering brick assets dvc.biobricks.ai")
         
-        def find_allowed_files(fs, dir_path, allowed_filetypes):
-            files = []
-            for file_path in fs.listdir(dir_path):
-                if any(file_path.endswith(ext) for ext in allowed_filetypes):
-                    files.append(file_path)
-                elif fs.isdir(file_path):
-                    files.extend(find_allowed_files(fs, file_path, allowed_filetypes))
-            return files
-        
         fs = dvc.api.DVCFileSystem(self.path())
-        allowed_paths = find_allowed_files(fs, "data", Brick.ALLOWED_FILETYPES)
-
+        paths = [x['dvc_info']['name'] for x in fs.listdir('brick') if 'dvc_info' in x.keys()]
+        paths = [x for x in paths if x.startswith('brick')]
+            
         logger.info(f"pulling brick assets")
         # TODO dvc currently queries the cache which involves big md5 calculations
         # instead we should use the dvc api to pull the files directly
-        run(f"dvc pull {' '.join(allowed_paths)}", cwd=self.path(), shell=True, stdout=sys.stderr)
+        run(f"dvc pull {' '.join(paths)}", cwd=self.path(), shell=True, stdout=sys.stderr)
         
         logger.info(f"\033[94m{self.url()}\033[0m succesfully downloaded to BioBricks library.")
         return self
