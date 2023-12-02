@@ -7,7 +7,7 @@ from .logger import logger
 import os, urllib.request as request, functools, dvc.api
 from urllib.parse import urlparse
 import sys
-from .checks import check_url_available, check_token, check_symlink_permission
+from .checks import check_url_available, check_token, check_symlink_permission, check_safe_git_repo
 
 class Brick:
     
@@ -160,18 +160,23 @@ class Brick:
     def assets(self):
         """Get the assets for this brick."""
         brick_dir = self.path()
-
+        
+        is_safe = check_safe_git_repo(self.path())
+        
+        if not is_safe:
+            subprocess.check_call(['git', 'config', '--global', '--add', 'safe.directory', brick_dir])
+        
         if not brick_dir.exists():
             raise Exception(f"No path '{brick_dir}'. Try `biobricks install {self.url()}`")
 
-        def collect_allowed_files(target_dir):
+        def collect_allowed_files(target_dir, startdir):
             """Recursively collect files with allowed extensions."""
             if not target_dir.exists():
                 return {}
             
             collected_files = {}
             for entry in os.scandir(target_dir):
-                rel_path = os.path.relpath(entry.path, start=brick_dir / 'brick')
+                rel_path = os.path.relpath(entry.path, start = startdir)
                 if any(entry.name.endswith(ext) for ext in Brick.ALLOWED_FILETYPES):
                     collected_files[rel_path] = entry.path
                 elif entry.is_dir():
@@ -179,7 +184,9 @@ class Brick:
             
             return collected_files
 
-        assets_dict = collect_allowed_files(brick_dir / 'brick')
+        brick_assets_dict = collect_allowed_files(brick_dir / 'brick', startdir = brick_dir / 'brick')
+        data_assets_dict = collect_allowed_files(brick_dir / 'data', startdir = brick_dir / 'data')
+        assets_dict = {**brick_assets_dict, **data_assets_dict}
 
         # Post-process the keys
         process = lambda key: key.replace('/', '_').replace('\\', '_').replace('.', '_')

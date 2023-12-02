@@ -1,8 +1,10 @@
 import sys, os, types
 import biobricks as bb
-import click, cloup, pkg_resources, requests
-from .logger import logger
+import click, cloup, requests
 from pathlib import Path
+from importlib import metadata
+
+from .logger import logger
 from .config import read_config, write_config, init_bblib
 from .checks import check_token
 from .brick import Brick
@@ -32,28 +34,20 @@ def configure(bblib, token, overwrite):
     
     # EMAIL PROMPT 
     email = click.prompt("Choose Email", type=click.Path())
+    click.echo("\nRegister and log in to: https://biobricks.ai\nThen copy your token from https://biobricks.ai/token\n")
+    token = click.prompt("Copy token from https://biobricks.ai/token here")
 
+    # VALIDATE TOKEN    
+    while not check_token(token, silent=True):
+        click.echo(click.style("invalid token. check your token at https://biobricks.ai/token", fg="red"))
+        token = click.prompt("Input a token from biobricks.ai/token",hide_input=True)
+    
     # BBLIB PROMPT - DEFAULT TO EXISTING
     conmsg = lambda: f"use current BBLIB '{bblib or config['BBLIB']}'?"
     if not bblib and config.keys() >= {"BBLIB"} and click.confirm(conmsg(), default=True):
         bblib = config["BBLIB"]
     elif not bblib:
         bblib = click.prompt("Choose path to store bricks", type=click.Path())
-
-    # TOKEN PROMPT - DEFAULT TO EXISTING AND THEN FREE TOKEN
-    deftoken = "skip for temporary token"
-    conmsg = f"use current token defined at '{path}'?"
-    if not token and config.keys() >= {"TOKEN"} and click.confirm(conmsg):
-        token = config["TOKEN"]
-    elif not token:
-        msg = "Copy token from biobricks.ai/token"
-        token = click.prompt(msg, hide_input=True, default = deftoken)
-
-    # VALIDATE TOKEN    
-    while token != deftoken and not check_token(token, silent=True):
-        click.echo(click.style("invalid token. check your token at https://biobricks.ai/token", fg="red"))
-        token = click.prompt("Input a token from biobricks.ai/token",hide_input=True, default=deftoken)
-    token = "VQF6Q2U-NKktZ31ioVYa9w" if token == deftoken else token
 
     # write configuration
     config = { "BBLIB": bblib, "TOKEN": token, "EMAIL": email }
@@ -82,8 +76,7 @@ def assets(ref):
     for key, value in vars(assets).items():
         click.echo(f"{key}: {value}")
 
-@cli.command(help="Initialize a .bb directory for data dependencies",
-             section=Sect.BRICK)
+@cli.command(help="Initialize a .bb directory for data dependencies", section=Sect.BRICK)
 def init():
     location = ".bb"
     dotbb = Path(location)
@@ -125,8 +118,7 @@ def pull():
     lbb = LocalBB.FromPath(os.getcwd())
     lbb.install_dependencies()
     
-@cli.command(help="Show the status of the local brick",
-    section=Sect.BRICK)
+@cli.command(help="Show the status of the local brick", section=Sect.BRICK)
 def status():
     click.echo("BBLIB: " + str(bb.bblib()))
     # print the dependencies file
@@ -135,7 +127,7 @@ def status():
         
 @cli.command(help="Get version and check for updates", section=Sect.GLOBAL)
 def version():
-    current_version = pkg_resources.get_distribution('biobricks').version
+    current_version = metadata.version('biobricks')
     response = requests.get('https://pypi.org/pypi/biobricks/json')
     latest_version = response.json()['info']['version']
     if current_version != latest_version:

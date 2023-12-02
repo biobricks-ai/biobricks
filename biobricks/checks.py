@@ -1,8 +1,15 @@
 import urllib.request as request
 import json, urllib
-import os, tempfile, uuid, requests, pkg_resources
+import os, tempfile, uuid, requests
+import subprocess
 from pathlib import Path
-    
+
+def check_safe_git_repo(git_repo_path):
+    "every biobrick needs to be a safe git directory"
+    result = subprocess.check_output(['git', 'config', '--global', '--get-regexp', 'safe.directory']).decode().strip()
+    safe_directories = [line.split(' ')[1] for line in result.split('\n') if line.strip() != '']
+    return git_repo_path in safe_directories
+        
 def check_url_available(url):
     try:
         code = request.urlopen(url).getcode()
