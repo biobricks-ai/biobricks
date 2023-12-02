@@ -65,9 +65,19 @@ def install(ref):
     return Brick.Resolve(ref, force_remote=True).install()
 
 @cli.command(help="Uninstall a data dependency", section=Sect.GLOBAL)
-@click.argument("ref",type=str)
+@click.argument("ref", type=str)
 def uninstall(ref):
-    return Brick.Resolve(ref).uninstall()
+    brick = Brick.Resolve(ref)
+
+    # Confirmation prompt
+    if click.confirm(f"Are you sure you want to uninstall the brick '{ref}'?"):
+        try:
+            brick.uninstall()
+            click.echo(f"Successfully uninstalled '{ref}'.")
+        except Exception as e:
+            click.echo(f"Error occurred while uninstalling '{ref}': {e}", err=True)
+    else:
+        click.echo("Uninstallation cancelled.")
 
 @cli.command(help="List assets in a data dependency", section=Sect.GLOBAL)
 @click.argument("ref",type=str)

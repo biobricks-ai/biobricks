@@ -4,7 +4,7 @@ import types, pyarrow.parquet as pq, re
 from pathlib import Path
 from .config import bblib, token
 from .logger import logger
-import os, urllib.request as request, functools, dvc.api
+import os, urllib.request as request, functools, dvc.api, shutil
 from urllib.parse import urlparse
 import sys
 from .checks import check_url_available, check_token, check_symlink_permission, check_safe_git_repo
@@ -202,5 +202,12 @@ class Brick:
 
     def uninstall(self):
         "uninstall this brick"
-        os.rmdir(self.path())
+        
+        if not os.path.exists(self.path()):
+            raise Exception(f"The brick {self.url()} is not installed.")
+
+        try:
+            shutil.rmtree(self.path())
+        except Exception as e:
+            raise Exception(f"Error occurred while removing directory: {e}")
         
