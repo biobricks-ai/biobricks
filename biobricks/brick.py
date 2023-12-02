@@ -29,6 +29,11 @@ class Brick:
         """Get the version of a brick from its git repo."""
         bdir = bblib(path)
         gsys = functools.partial(subprocess.check_output, shell=True, cwd=bdir)
+        
+        is_safe = check_safe_git_repo(bdir)
+        if not is_safe:
+            subprocess.check_call(['git', 'config', '--global', '--add', 'safe.directory', bdir])
+            
         commit = gsys("git rev-parse HEAD").decode().strip()
         remote = gsys("git config --get remote.origin.url").decode().strip()
         return Brick(remote, commit)
