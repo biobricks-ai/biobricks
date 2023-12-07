@@ -1,50 +1,21 @@
+# test_cli.py
 import pytest
-import os
-import pathlib
-import tempfile
+from biobricks.cli import register_on_biobricks
 
-import biobricks as bb
-from biobricks import Brick
-from biobricks.checks import check_url_available
-
+# Using requests_mock to mock API responses
 @pytest.fixture
-def CONFIG():
-    oldbb = os.getenv('BBLIB')
-    tdir  = tempfile.TemporaryDirectory()
-    os.environ['BBLIB'] = tdir.name
-    yield pathlib.Path(tdir.name)
-    if oldbb: os.environ['BBLIB'] = oldbb
-    tdir.cleanup()
+def mock_request(requests_mock):
+    mock_url = 'https://biobricks.ai/api/register'
+    mock_response = {
+        'auth_numbers': '12345',
+        'auth_url': 'https://biobricks.ai/auth'
+    }
+    requests_mock.post(mock_url, json=mock_response, status_code=200)
+    return requests_mock  # This return isn't necessary but can be useful if you want to add more specifics in the fixture.
 
-# def test_initialize(BBLIB, TOKEN):
-#     errmsg = "must use token from https://biobricks.ai/token"
-#     with pytest.raises(Exception,match=errmsg) as e:
-#         bb.initialize()
-
-#     res = bb.initialize(TOKEN)
-#     assert(res == BBLIB)
-#     assert(bb.token() == TOKEN)
-
-# def test_bblib(EMPTY_BBLIB):
-#     errmsg = "'BBLIB' env not available.*"
-#     with pytest.raises(Exception,match=errmsg):
-#         bb.bblib()
-
-def test_load(CONFIG):
+def test_register_on_biobricks(mock_request):  # This should be the fixture name.
+    result = register_on_biobricks('test@example.com')
     
-    with pytest.raises(Exception,match=r".*Failed to get the latest version of.*"):
-        Brick.Resolve("lkjasdfkjasdklfj")
-    
-    # brick = "hello-brick"
-    # org = "biobricks-ai"
-    # bb.pull(brick,org)
-    # assert bb.bblib(f'{org}/{brick}/data/mtcars.parquet').exists()
-    
-    # tbls = bb.load(brick,org)
-    # assert tbls.mtcars.shape == (32,11)
-    
-    # with pytest.raises(Exception,match="no path.*"):
-    #     bb.load("a-brick-that-doesn't-exist")
-    
-    # with pytest.raises(Exception,match=".* not available"):
-    #     check_url_available("http://the-internet.herokuapp.com/status_codes/301")
+    assert result['message'] == "Authentication needed."
+    assert result['auth_numbers'] == '12345'
+    assert result['auth_url'] == 'https://biobricks.ai/auth'

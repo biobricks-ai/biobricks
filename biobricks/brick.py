@@ -185,7 +185,7 @@ class Brick:
                 if any(entry.name.endswith(ext) for ext in Brick.ALLOWED_FILETYPES):
                     collected_files[rel_path] = entry.path
                 elif entry.is_dir():
-                    collected_files.update(collect_allowed_files(Path(entry.path)))
+                    collected_files.update(collect_allowed_files(Path(entry.path), startdir))
             
             return collected_files
 
