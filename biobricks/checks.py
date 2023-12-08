@@ -6,9 +6,12 @@ from pathlib import Path
 
 def check_safe_git_repo(git_repo_path):
     "every biobrick needs to be a safe git directory"
-    result = subprocess.check_output(['git', 'config', '--global', '--get-regexp', 'safe.directory']).decode().strip()
-    safe_directories = [line.split(' ')[1] for line in result.split('\n') if line.strip() != '']
-    return git_repo_path in safe_directories
+    try:
+        raw_safe_dirs = subprocess.check_output(['git', 'config', '--global', '--get-regexp', 'safe.directory']).decode().strip()
+    except subprocess.CalledProcessError as e:
+        raw_safe_dirs = ""
+    safe_dirs = [line.split(' ')[1] for line in raw_safe_dirs.split('\n') if line.strip() != '']
+    return git_repo_path in safe_dirs
         
 def check_url_available(url):
     try:
