@@ -1,5 +1,5 @@
 from .brick import Brick
-import os, git
+import os
 from pathlib import Path
 class LocalBB():
   
@@ -13,16 +13,12 @@ class LocalBB():
   
   @staticmethod
   def FromWorkingDirectory():
-    """get the local bb from the current working directory"""
-    try:
-      repo = git.Repo(path, search_parent_directories=True)
-      path = Path(repo.git.working_dir)
-      if not (path / ".bb").exists():
-        return None
-      return LocalBB(path)
-    except:
-      return None
-    
+    """Get the local bb from the current working directory or its parents."""
+    cwd = Path.cwd()
+    if (cwd / ".bb").exists():
+      return LocalBB(cwd)
+    return None
+        
   def get_depencies(self):
     """get bricks from the local bb dependencies file"""
     lines = self.dependencies_path.open("r").readlines()

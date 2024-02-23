@@ -1,7 +1,7 @@
 # Create an ubuntu docker image with pip, python, and git
 # build with `docker build -t ubuntu-pip-python-git .`
 # create a container from the image that gets destroyed after use
-# `docker run --rm -it ubuntu-pip-python-git /bin/bash`
+# `docker run --rm -it -v ./:/biobricks ubuntu-pip-python-git /bin/bash`
 
 FROM python:3.9-slim
 
