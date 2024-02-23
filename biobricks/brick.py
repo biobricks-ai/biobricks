@@ -1,10 +1,11 @@
 import subprocess, functools, os, re, datetime, json
 from subprocess import run, DEVNULL
-import types, pyarrow.parquet as pq, re
+import types
 from pathlib import Path
 from .config import bblib, token
 from .logger import logger
-import os, urllib.request as request, functools, dvc.api, shutil
+import os, urllib.request as request, functools, shutil
+# import dvc.api
 from urllib.parse import urlparse
 import sys
 from .checks import check_url_available, check_token, check_symlink_permission, check_safe_git_repo

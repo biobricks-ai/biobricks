@@ -1,20 +1,27 @@
 import os, warnings, json, urllib
 from subprocess import run, DEVNULL, STDOUT
 from pathlib import Path
+import shutil
+
+def biobricks_config_path():
+    return Path.home().joinpath(".biobricks")
 
 def read_config():
-    path = Path.home().joinpath(".biobricks")
+    path = biobricks_config_path()
     if not path.exists(): return {}
     return json.loads(path.read_text())
 
 def write_config(config):
-    path = Path.home().joinpath(".biobricks")
+    path = biobricks_config_path()
     path.write_text(json.dumps(config))
 
 def init_bblib() -> None:
+    breakpoint()
     bbpath = Path(read_config()['BBLIB'])
     os.makedirs(bbpath, exist_ok=True)
     os.makedirs(bbpath / "cache", exist_ok=True)
+    if not shutil.which('git'):
+        raise Exception('Program "git" is not installed. Please install "git"')
     run("git init", cwd=bbpath, stdout=DEVNULL, stderr=STDOUT, shell=True)
     return bblib()
 

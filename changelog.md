@@ -1,0 +1,2 @@
+- remove pyarrow dependency
+- remove git from local_bb

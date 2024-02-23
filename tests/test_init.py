@@ -1,21 +1,39 @@
-# test_cli.py
-import pytest
-from biobricks.cli import register_on_biobricks
+import unittest
+from unittest.mock import patch, MagicMock
+from pathlib import Path
+from biobricks import Brick, cli
+from biobricks.config import write_config, init_bblib
+import tempfile
 
-# Using requests_mock to mock API responses
-@pytest.fixture
-def mock_request(requests_mock):
-    mock_url = 'https://biobricks.ai/api/register'
-    mock_response = {
-        'auth_numbers': '12345',
-        'auth_url': 'https://biobricks.ai/auth'
-    }
-    requests_mock.post(mock_url, json=mock_response, status_code=200)
-    return requests_mock  # This return isn't necessary but can be useful if you want to add more specifics in the fixture.
-
-def test_register_on_biobricks(mock_request):  # This should be the fixture name.
-    result = register_on_biobricks('test@example.com')
+def configure(bblib, token, overwrite, interactive):
     
-    assert result['message'] == "Authentication needed."
-    assert result['auth_numbers'] == '12345'
-    assert result['auth_url'] == 'https://biobricks.ai/auth'
+    if not interactive:
+        config = { "BBLIB": f"{bblib}", "TOKEN": token }
+        write_config(config)
+        init_bblib()
+        return
+
+class TestBrickResolve(unittest.TestCase):
+    
+    tempdir = tempfile.TemporaryDirectory()
+    
+    def setUp(self):
+        bblib = Path(f"{TestBrickResolve.tempdir.name}/biobricks")
+        bblib.mkdir(exist_ok=True,parents=True)
+        configure(f"{bblib}", "VQF6Q2U-NKktZ31ioVYa9w", None, None)
+
+    def tearDown(self) -> None:
+        return super().tearDown()
+
+    # test basic install of the hello-brick
+    @patch('biobricks.bblib')
+    def test_install_hello_brick():
+        from biobricks.brick import Brick
+        brick = Brick.Resolve("hello-brick")
+        brick.install()
+        assert brick.path().exists()
+        assert (brick.path() / "hello.txt").exists()
+        assert (brick.path() / "hello.txt").read_text() == "hello world\n"
+
+if __name__ == '__main__':
+    unittest.main()

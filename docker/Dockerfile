@@ -1,9 +1,15 @@
 # Create an ubuntu docker image with pip, python, and git
 # build with `docker build -t ubuntu-pip-python-git .`
 # create a container from the image that gets destroyed after use
-# `docker run --rm -it -v ./:/biobricks ubuntu-pip-python-git /bin/bash`
+# `docker run --rm -it -v ./:/home/appuser/biobricks ubuntu-pip-python-git /bin/bash`
 
 FROM python:3.9-slim
+
+# Install system dependencies including Git
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends git && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # Install pipx
 RUN python -m pip install --upgrade pip && \

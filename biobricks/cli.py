@@ -5,7 +5,7 @@ from pathlib import Path
 from importlib import metadata
 
 from .logger import logger
-from .config import read_config, write_config, init_bblib
+from .config import biobricks_config_path, read_config, write_config, init_bblib
 from .checks import check_token
 from .brick import Brick
 from .local_bb import LocalBB
@@ -22,20 +22,22 @@ class Sect:
 @click.option("--bblib", default=None, type=click.Path(), help="path to store bricks")
 @click.option("--token", default=None, help="biobricks.ai/token auth token")
 @click.option("--overwrite", default=False, help="overwrite existing config?")
-def configure(bblib, token, overwrite):
+@click.option("--interactive", default=True, help="run configure interactively?")
+def configure(bblib, token, overwrite, interactive):
+    
+    if not interactive:
+        config = { "BBLIB": f"{bblib}", "TOKEN": token }
+        write_config(config)
+        init_bblib()
+        return
 
-    path = Path.home().joinpath(".biobricks")
+    path = biobricks_config_path()
     config = read_config()
 
     # CHECK IF CONFIG WILL OVERWRITE EXISTING
     msg = click.style("WARNING: overwrite existing config?", fg="red")
     if path.exists() and not overwrite and not click.confirm(msg):
         sys.exit(0)
-    
-    # EMAIL PROMPT 
-    email = click.prompt("Choose Email", type=click.Path())
-    click.echo("\nRegister and log in to: https://biobricks.ai\nThen copy your token from https://biobricks.ai/token\n")
-    token = click.prompt("Copy token from https://biobricks.ai/token here")
 
     # VALIDATE TOKEN    
     while not check_token(token, silent=True):
@@ -50,7 +52,7 @@ def configure(bblib, token, overwrite):
         bblib = click.prompt("Choose path to store bricks", type=click.Path())
 
     # write configuration
-    config = { "BBLIB": bblib, "TOKEN": token, "EMAIL": email }
+    config = { "BBLIB": bblib, "TOKEN": token }
     write_config(config)
 
     # initialize bblib
