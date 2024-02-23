@@ -2,26 +2,20 @@
 # build with `docker build -t ubuntu-pip-python-git .`
 # create a container from the image that gets destroyed after use
 # `docker run --rm -it ubuntu-pip-python-git /bin/bash`
-FROM ubuntu:latest
 
-RUN apt-get update && apt-get install -y \
-    python3-pip \
-    python3-dev \
-    git
+FROM python:3.9-slim
 
-# Add R and the remotes package, non-interactively
-ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update 
-RUN apt-get install -y \
-    r-base \
-    r-base-dev \
-    libcurl4-openssl-dev \
-    libssl-dev \
-    libxml2-dev \ 
-    libfontconfig1-dev \ 
-    libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev \ 
-    libharfbuzz-dev libfribidi-dev
+# Install pipx
+RUN python -m pip install --upgrade pip && \
+    pip install pipx && \
+    pipx ensurepath
 
-# add testthat, covr, fs, purrr, dplyr, and reticulate R packages
-RUN R -e "install.packages(c('testthat', 'covr', 'fs', 'purrr', 'dplyr', 'reticulate'))"
-RUN R -e "install.packages(c('tidyverse','remotes'))"
+# Use a non-root user for better security
+RUN useradd --create-home appuser
+USER appuser
+
+# Set the home directory for the appuser
+WORKDIR /home/appuser
+
+# Start with a shell by default
+CMD ["/bin/bash"]
