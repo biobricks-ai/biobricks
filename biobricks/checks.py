@@ -38,7 +38,7 @@ def check_symlink_permission():
         src.close()
         return True
     except Exception as e:
-        raise PermissionError("Need Symlink Permission. Contact administrator and see https://dvc.org/doc/user-guide/how-to/run-dvc-on-windows#enable-symbolic-links.")
+        raise PermissionError("Need Symlink Permission. Contact administrator.")
 
 def check_configured():
     """check that biobricks is configured"""

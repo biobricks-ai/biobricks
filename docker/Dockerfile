@@ -1,5 +1,5 @@
 # Create an ubuntu docker image with pip, python, and git
-# build with `docker build -t ubuntu-pip-python-git .`
+# build with `docker build -t ubuntu-pip-python-git -f ./docker/Dockerfile .`
 # create a container from the image that gets destroyed after use
 # `docker run --rm -it -v ./:/home/appuser/biobricks ubuntu-pip-python-git /bin/bash`
 
@@ -22,6 +22,10 @@ USER appuser
 
 # Set the home directory for the appuser
 WORKDIR /home/appuser
+
+# install the requirements.txt
+COPY requirements.txt /home/appuser
+RUN pip install -r requirements.txt
 
 # Start with a shell by default
 CMD ["/bin/bash"]

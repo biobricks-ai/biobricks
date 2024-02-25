@@ -4,8 +4,8 @@ import types
 from pathlib import Path
 from .config import bblib, token
 from .logger import logger
-import os, urllib.request as request, functools, shutil
-# import dvc.api
+import os, urllib.request as request, functools, shutil, yaml
+from .downloader import download_out
 from urllib.parse import urlparse
 import sys
 from .checks import check_url_available, check_token, check_symlink_permission, check_safe_git_repo
@@ -133,33 +133,18 @@ class Brick:
         cmd(f"git clone {self.remote} {self._relpath()}", cwd = bblib())
         cmd(f"git checkout {self.commit}", cwd = self.path())
 
-        logger.info(f"adding brick to dvc cache")
-        rsys = functools.partial(cmd,cwd=self.path())
-        rsys(f"dvc cache dir {bblib() / 'cache'}")
-        rsys("dvc config cache.shared group")
-        rsys("dvc config cache.type symlink")
-
-        # SET UP BIOBRICKS.AI DVC REMOTE WITH AUTH
-        logger.info(f"setting up credentials for dvc.biobricks.ai")
-        rsys("dvc remote add -f biobricks.ai https://dvc.biobricks.ai")
-        rsys("dvc remote modify --local biobricks.ai auth custom")
-        rsys("dvc remote modify --local biobricks.ai custom_auth_header BBToken")
-        rsys("dvc remote modify --local biobricks.ai read_timeout 300")
-        rsys("dvc remote modify --local biobricks.ai connect_timeout 300")
-
-        rsys(f"dvc remote modify --local biobricks.ai password {token()}")
-
-        logger.info(f"discovering brick assets dvc.biobricks.ai")
+        outs = []
+        with open(self.path() / "dvc.lock") as f:
+            dvc_lock = yaml.safe_load(f)
+            stages = [stage for stage in dvc_lock.get('stages', []).values()]
+            outs = [out for stage in stages for out in stage.get('outs', [])]
         
-        fs = dvc.api.DVCFileSystem(self.path())
-        paths = [x['dvc_info']['name'] for x in fs.listdir('brick') if 'dvc_info' in x.keys()]
-        paths = [x for x in paths if x.startswith('brick')]
+        for out in outs:
+            md5 = out.get('md5')
+            relpath = out.get('path')
+            dest_path = self.path() / relpath
+            download_out(md5, dest_path)
             
-        logger.info(f"pulling brick assets")
-        # TODO dvc currently queries the cache which involves big md5 calculations
-        # instead we should use the dvc api to pull the files directly
-        run(f"dvc pull {' '.join(paths)}", cwd=self.path(), shell=True, stdout=sys.stderr)
-        
         logger.info(f"\033[94m{self.url()}\033[0m succesfully downloaded to BioBricks library.")
         return self
     

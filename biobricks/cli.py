@@ -40,6 +40,7 @@ def configure(bblib, token, overwrite, interactive):
         sys.exit(0)
 
     # VALIDATE TOKEN    
+    token = click.prompt("Input a token from biobricks.ai/token",hide_input=True)
     while not check_token(token, silent=True):
         click.echo(click.style("invalid token. check your token at https://biobricks.ai/token", fg="red"))
         token = click.prompt("Input a token from biobricks.ai/token",hide_input=True)

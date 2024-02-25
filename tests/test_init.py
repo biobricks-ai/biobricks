@@ -1,39 +1,66 @@
 import unittest
-from unittest.mock import patch, MagicMock
 from pathlib import Path
-from biobricks import Brick, cli
+from biobricks import Brick
 from biobricks.config import write_config, init_bblib
 import tempfile
-
-def configure(bblib, token, overwrite, interactive):
-    
-    if not interactive:
-        config = { "BBLIB": f"{bblib}", "TOKEN": token }
-        write_config(config)
-        init_bblib()
-        return
+import pandas as pd
+import sqlite3
 
 class TestBrickResolve(unittest.TestCase):
     
-    tempdir = tempfile.TemporaryDirectory()
-    
-    def setUp(self):
+    @classmethod
+    def setUpClass(cls):
+        cls.tempdir = tempfile.TemporaryDirectory()
         bblib = Path(f"{TestBrickResolve.tempdir.name}/biobricks")
         bblib.mkdir(exist_ok=True,parents=True)
-        configure(f"{bblib}", "VQF6Q2U-NKktZ31ioVYa9w", None, None)
+        config = { "BBLIB": f"{bblib}", "TOKEN": "VQF6Q2U-NKktZ31ioVYa9w" }
+        write_config(config)
+        init_bblib()
 
-    def tearDown(self) -> None:
-        return super().tearDown()
+    @classmethod
+    def tearDown(cls):
+        cls.tempdir.cleanup()
 
-    # test basic install of the hello-brick
-    @patch('biobricks.bblib')
-    def test_install_hello_brick():
-        from biobricks.brick import Brick
+    def test_install_hello_brick(self):
         brick = Brick.Resolve("hello-brick")
         brick.install()
-        assert brick.path().exists()
-        assert (brick.path() / "hello.txt").exists()
-        assert (brick.path() / "hello.txt").read_text() == "hello world\n"
+
+        paths = [
+            "brick/iris.sqlite",
+            "brick/mtcars.parquet",
+            "brick/rtbls/iris.parquet",
+            "brick/rtbls/mtcars.parquet"
+        ]
+        
+        # Check if all paths exist
+        for path in paths:
+            self.assertTrue((brick.path() / path).exists())
+        
+        # Testing data frames
+        df_mtcars = pd.read_parquet(brick.path() / "brick/mtcars.parquet")
+        self.assertEqual(df_mtcars.shape, (32, 11))
+
+        df_iris = pd.read_parquet(brick.path() / "brick/rtbls/iris.parquet")
+        self.assertEqual(df_iris.shape, (150, 5))
+
+        # Testing SQLite data
+        with sqlite3.connect(brick.path() / "brick/iris.sqlite") as con:
+            df_sql = pd.read_sql_query("SELECT * FROM iris", con)
+            self.assertEqual(df_sql.shape, (150, 5))
+    
+    def test_uninstall_hello_brick(self):
+        brick = Brick.Resolve("hello-brick")
+        brick.uninstall()
+        self.assertFalse(brick.path().exists())
+    
+    def test_assets_hello_brick(self):
+        brick = Brick.Resolve("hello-brick")
+        brick.install()
+        assets = brick.assets()
+        self.assertTrue(hasattr(assets, "iris_sqlite"))
+        self.assertTrue(hasattr(assets, "mtcars_parquet"))
+        self.assertTrue(hasattr(assets, "rtbls_iris_parquet"))
+        self.assertTrue(hasattr(assets, "rtbls_mtcars_parquet"))
 
 if __name__ == '__main__':
     unittest.main()
