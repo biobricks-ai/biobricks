@@ -6,6 +6,7 @@ from biobricks.config import write_config, init_bblib
 import tempfile
 import pandas as pd
 import sqlite3
+import os
 
 class BrickTests(unittest.TestCase):
     
@@ -13,7 +14,8 @@ class BrickTests(unittest.TestCase):
         self.tempdir = tempfile.TemporaryDirectory()
         bblib = Path(f"{self.tempdir.name}/biobricks")
         bblib.mkdir(exist_ok=True,parents=True)
-        config = { "BBLIB": f"{bblib}", "TOKEN": "VQF6Q2U-NKktZ31ioVYa9w" }
+        token = os.environ.get("BIOBRICKS_TOKEN")
+        config = { "BBLIB": f"{bblib}", "TOKEN": token }
         write_config(config)
         init_bblib()
 

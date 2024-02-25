@@ -27,5 +27,8 @@ WORKDIR /home/appuser
 COPY requirements.txt /home/appuser
 RUN pip install -r requirements.txt
 
+# add environmental variables from .env file
+COPY .env /home/appuser
+
 # Start with a shell by default
 CMD ["/bin/bash"]

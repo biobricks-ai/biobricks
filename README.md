@@ -31,6 +31,3 @@ bb.assets('tox21') # get the paths for the 'tox21' brick
 ```
 
 To list the bricks currently available visit [github.com/biobricks-ai](https://github.com/biobricks-ai)
-
-# TODO
-1. eventually need to special case (or remove) the testing biobricks token
