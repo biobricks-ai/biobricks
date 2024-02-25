@@ -18,6 +18,6 @@ jobs:
         run: pip install -r requirements.txt  # Removed the working-directory override for this step
       - name: Run tests and collect coverage
         run: pytest --cov=./ --cov-report=xml
-        working-directory: ./biobricks  # Set the working directory only for the test step
+        working-directory: ./  # Set the working directory only for the test step
       - name: Upload coverage reports to Codecov with GitHub Action
         uses: codecov/codecov-action@v3
