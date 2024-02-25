@@ -14,7 +14,7 @@ class BrickTests(unittest.TestCase):
         self.tempdir = tempfile.TemporaryDirectory()
         bblib = Path(f"{self.tempdir.name}/biobricks")
         bblib.mkdir(exist_ok=True,parents=True)
-        token = os.environ.get("BIOBRICKS_TOKEN")
+        token = os.environ.get("BIOBRICKS_TEST_TOKEN")
         config = { "BBLIB": f"{bblib}", "TOKEN": token }
         write_config(config)
         init_bblib()
