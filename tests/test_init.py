@@ -8,18 +8,16 @@ import sqlite3
 
 class TestBrickResolve(unittest.TestCase):
     
-    @classmethod
-    def setUpClass(cls):
-        cls.tempdir = tempfile.TemporaryDirectory()
-        bblib = Path(f"{TestBrickResolve.tempdir.name}/biobricks")
+    def setUp(self):
+        self.tempdir = tempfile.TemporaryDirectory()
+        bblib = Path(f"{self.tempdir.name}/biobricks")
         bblib.mkdir(exist_ok=True,parents=True)
         config = { "BBLIB": f"{bblib}", "TOKEN": "VQF6Q2U-NKktZ31ioVYa9w" }
         write_config(config)
         init_bblib()
 
-    @classmethod
-    def tearDown(cls):
-        cls.tempdir.cleanup()
+    def tearDown(self):
+        self.tempdir.cleanup()
 
     def test_install_hello_brick(self):
         brick = Brick.Resolve("hello-brick")
@@ -50,6 +48,8 @@ class TestBrickResolve(unittest.TestCase):
     
     def test_uninstall_hello_brick(self):
         brick = Brick.Resolve("hello-brick")
+        brick.install()
+        self.assertTrue(brick.path().exists())
         brick.uninstall()
         self.assertFalse(brick.path().exists())
     
