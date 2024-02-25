@@ -30,4 +30,4 @@ import biobricks as bb
 bb.assets('tox21') # get the paths for the 'tox21' brick
 ```
 
-To list the bricks currently available visit [github.com/biobricks-ai](https://github.com/biobricks-ai)
+To list the bricks currently available visit [status.biobricks.ai](https://status.biobricks.ai)
