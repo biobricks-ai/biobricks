@@ -139,7 +139,8 @@ class Brick:
             stages = [stage for stage in dvc_lock.get('stages', []).values()]
             outs = [out for stage in stages for out in stage.get('outs', [])]
         
-        for out in outs:
+        brick_outs = [out for out in outs if out.get('path').startswith('brick')]
+        for out in brick_outs:
             md5 = out.get('md5')
             relpath = out.get('path')
             dest_path = self.path() / relpath
