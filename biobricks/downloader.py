@@ -3,6 +3,7 @@ from .logger import logger
 import os
 import shutil
 import requests
+import biobricks.checks
 from pathlib import Path
 from tqdm import tqdm  # Import tqdm for the progress bar
 
@@ -44,8 +45,12 @@ def download_out(md5, dest: Path, url_prefix="https://dvc.biobricks.ai/files/md5
         logger.info(f"downloading file {remote_url} to {cache_path}")
         _download_outfile(remote_url, cache_path, bytes)
         
-    dest.unlink(missing_ok=True) # remove the symlink if it exists  
-    os.symlink(cache_path, dest)
+    dest.unlink(missing_ok=True) # remove the symlink if it exists
+    if not biobricks.checks.can_symlink():
+        logger.warning(f"you are not able to make symlinks cache-files will be copied to bricks. This is an inefficient use of disk space.")
+        shutil.copy(cache_path, dest)
+    else:
+        os.symlink(cache_path, dest)
         
     
     

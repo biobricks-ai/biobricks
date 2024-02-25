@@ -29,7 +29,7 @@ def check_token(token, silent=False):
         raise ValueError(f"Invalid token. Run `biobricks configure`")
     return is_valid
 
-def check_symlink_permission():
+def can_symlink():
     try:
         src = tempfile.NamedTemporaryFile()
         dst = os.path.join(tempfile.gettempdir(), str(uuid.uuid4()))
@@ -38,7 +38,7 @@ def check_symlink_permission():
         src.close()
         return True
     except Exception as e:
-        raise PermissionError("Need Symlink Permission. Contact administrator.")
+        return False
 
 def check_configured():
     """check that biobricks is configured"""

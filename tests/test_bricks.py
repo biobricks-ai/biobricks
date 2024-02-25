@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 from biobricks import Brick
 from biobricks.config import write_config, init_bblib
@@ -6,7 +7,7 @@ import tempfile
 import pandas as pd
 import sqlite3
 
-class TestBrickResolve(unittest.TestCase):
+class BrickTests(unittest.TestCase):
     
     def setUp(self):
         self.tempdir = tempfile.TemporaryDirectory()
@@ -61,6 +62,23 @@ class TestBrickResolve(unittest.TestCase):
         self.assertTrue(hasattr(assets, "mtcars_parquet"))
         self.assertTrue(hasattr(assets, "rtbls_iris_parquet"))
         self.assertTrue(hasattr(assets, "rtbls_mtcars_parquet"))
+    
+    @patch('biobricks.checks.can_symlink', return_value=False)
+    def test_install_without_symlink(self, mocked_can_symlink):
+        brick = Brick.Resolve("hello-brick")
+        brick.install()
+
+        paths = [
+            "brick/iris.sqlite",
+            "brick/mtcars.parquet",
+            "brick/rtbls/iris.parquet",
+            "brick/rtbls/mtcars.parquet"
+        ]
+
+        for path in paths:
+            full_path = brick.path() / path
+            self.assertTrue(full_path.exists())
+            self.assertFalse(full_path.is_symlink(), f"{path} should not be a symlink")
 
 if __name__ == '__main__':
     unittest.main()

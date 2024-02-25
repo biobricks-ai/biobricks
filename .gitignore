@@ -11,6 +11,7 @@ env/
 
 # ignore codecov
 .coverage*
+coverage.xml
 
 scratch.py
 scratch.R

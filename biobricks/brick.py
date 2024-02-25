@@ -8,7 +8,7 @@ import os, urllib.request as request, functools, shutil, yaml
 from .downloader import download_out
 from urllib.parse import urlparse
 import sys
-from .checks import check_url_available, check_token, check_symlink_permission, check_safe_git_repo
+from .checks import check_url_available, check_token, check_safe_git_repo
 
 class Brick:
     
@@ -125,7 +125,6 @@ class Brick:
         
         check_url_available(self.remote)
         check_token(token())
-        check_symlink_permission()
 
         cmd = functools.partial(run,shell=True,stdout=DEVNULL,stderr=DEVNULL)
         
