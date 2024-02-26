@@ -6,7 +6,7 @@
 BioBricks makes loading data from biological datasets easy.
 
 ```bash
-pip install biobricks
+pipx install biobricks
 ```
 
 # initialize
