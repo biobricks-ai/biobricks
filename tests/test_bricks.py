@@ -2,20 +2,37 @@ import unittest
 from unittest.mock import patch
 from pathlib import Path
 from biobricks import Brick
-from biobricks.config import write_config, init_bblib
+from biobricks.config import write_config, init_bblib, token
 import tempfile
 import pandas as pd
 import sqlite3
 import os
 
 class BrickTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.token = os.environ.get("BIOBRICKS_TEST_TOKEN",None) or token()
+            
+        # Create a temporary directory for the whole class
+        cls.class_temp_dir = tempfile.TemporaryDirectory()
+        cls.temp_biobricks_config_path = Path(cls.class_temp_dir.name) / "biobricks_config_temp.json"
+
+        # Patch the biobricks.config.biobricks_config_path static method
+        cls.patcher = patch('biobricks.config.biobricks_config_path', return_value=cls.temp_biobricks_config_path)
+        cls.mock_biobricks_config_path = cls.patcher.start()
     
+    @classmethod
+    def tearDownClass(cls):
+        # Stop the patch after all tests in the class
+        cls.patcher.stop()
+        # Clean up the temporary directory for the class
+        cls.class_temp_dir.cleanup()
+
     def setUp(self):
         self.tempdir = tempfile.TemporaryDirectory()
         bblib = Path(f"{self.tempdir.name}/biobricks")
         bblib.mkdir(exist_ok=True,parents=True)
-        token = os.environ.get("BIOBRICKS_TEST_TOKEN")
-        config = { "BBLIB": f"{bblib}", "TOKEN": token }
+        config = { "BBLIB": f"{bblib}", "TOKEN": BrickTests.token }
         write_config(config)
         init_bblib()
 
