@@ -5,7 +5,7 @@ from pathlib import Path
 from .config import bblib, token
 from .logger import logger
 import os, urllib.request as request, functools, shutil, yaml
-from .downloader import download_out
+from .downloader import Downloader
 from urllib.parse import urlparse
 import sys
 from .checks import check_url_available, check_token, check_safe_git_repo
@@ -138,12 +138,10 @@ class Brick:
             stages = [stage for stage in dvc_lock.get('stages', []).values()]
             outs = [out for stage in stages for out in stage.get('outs', [])]
         
-        brick_outs = [out for out in outs if out.get('path').startswith('brick')]
-        for out in brick_outs:
-            md5 = out.get('md5')
-            relpath = out.get('path')
-            dest_path = self.path() / relpath
-            download_out(md5, dest_path)
+
+        downloader = Downloader()
+        downloader.download_by_prefix(outs, 'data', self.path())
+        downloader.download_by_prefix(outs, 'brick', self.path())
             
         logger.info(f"\033[94m{self.url()}\033[0m succesfully downloaded to BioBricks library.")
         return self
