@@ -5,7 +5,7 @@ from pathlib import Path
 from .config import bblib, token
 from .logger import logger
 import os, urllib.request as request, functools, shutil, yaml
-from .downloader import Downloader
+from .dvc_fetcher import DVCFetcher
 from urllib.parse import urlparse
 import sys
 from .checks import check_url_available, check_token, check_safe_git_repo
@@ -114,7 +114,12 @@ class Brick:
     def _relpath(self):
         "get the path to this brick relative to bblib"
         return self.urlpath() / self.commit
-
+    
+    def get_dvc_lock(self):
+        """get the dvc.lock file for this brick"""
+        with open(self.path() / "dvc.lock") as f:
+            return yaml.safe_load(f)
+    
     def install(self):
         "install this brick"
         logger.info(f"running checks on brick")
@@ -132,16 +137,7 @@ class Brick:
         cmd(f"git clone {self.remote} {self._relpath()}", cwd = bblib())
         cmd(f"git checkout {self.commit}", cwd = self.path())
 
-        outs = []
-        with open(self.path() / "dvc.lock") as f:
-            dvc_lock = yaml.safe_load(f)
-            stages = [stage for stage in dvc_lock.get('stages', []).values()]
-            outs = [out for stage in stages for out in stage.get('outs', [])]
-        
-
-        downloader = Downloader()
-        downloader.download_by_prefix(outs, 'data', self.path())
-        downloader.download_by_prefix(outs, 'brick', self.path())
+        DVCFetcher().fetch_outs(self)
             
         logger.info(f"\033[94m{self.url()}\033[0m succesfully downloaded to BioBricks library.")
         return self
