@@ -163,7 +163,7 @@ class DVCFetcher:
         stages = [stage for stage in dvc_lock.get('stages', []).values()]
         all_outs = [out for stage in stages for out in stage.get('outs', [])]
 
-        has_prefix = lambda x: any(x.get('path').startswith(prefix) for prefix in prefixes)
+        has_prefix = lambda x: any(x.get('path').startswith(prefix) for prefix in prefixes) or x.get('path') == 'brick'
         outs = [o for o in all_outs if has_prefix(o)]
         total_size = sum(o.get('size') for o in outs)
         
