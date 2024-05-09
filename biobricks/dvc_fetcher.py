@@ -46,7 +46,7 @@ class DownloadManager:
                 try:
                     data = future.result()
                 except Exception as e:
-                    logger.warning("there was a problem")
+                    logger.warning("Exception occurred while downloading brick.")
             
         
 class DVCFetcher:
