@@ -41,7 +41,7 @@ class DownloadManager:
         signal.signal(signal.SIGINT, lambda signum, frame: signal_handler(signum, frame, self.interrupt_event))
         with ThreadPoolExecutor(max_threads) as exec:
             exec_args = dict(zip(urls, paths))
-            futures = {exec.submit(self.exec_task, url, path) for url, path in exec_args}
+            futures = {exec.submit(self.exec_task, url, path) for url, path in exec_args.items()}
             for future in as_completed(futures):
                 try:
                     data = future.result()
