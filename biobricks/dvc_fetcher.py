@@ -22,6 +22,7 @@ class DownloadManager:
     interrupt_event : threading.Event = threading.Event()
     
     def exec_task(self, url, path):
+        path.parent.mkdir(parents=True, exist_ok=True)
         response = requests.get(url, stream=True, headers=self.headers)
         response.raise_for_status()
         total_size = int(response.headers.get('content-length', 0))
@@ -35,7 +36,7 @@ class DownloadManager:
                     if data:
                         file.write(data)
                         progress.update(len(data))
-                        self.total_progress_bar.update(len(data))
+                        # total_progress_bar.update(len(data))
     
     def download_exec(self, urls, paths, max_threads=4):
         signal.signal(signal.SIGINT, lambda signum, frame: signal_handler(signum, frame, self.interrupt_event))
@@ -46,6 +47,7 @@ class DownloadManager:
                 try:
                     data = future.result()
                 except Exception as e:
+                    logger.error(e)
                     logger.warning("Exception occurred while downloading brick.")
             
         
