@@ -19,11 +19,24 @@ class LocalBB():
       return LocalBB(cwd)
     return None
         
-  def get_depencies(self):
-    """get bricks from the local bb dependencies file"""
+  def get_dependencies(self):
+    """Get bricks from the local bb dependencies file."""
     lines = self.dependencies_path.open("r").readlines()
     lines = [line.strip() for line in lines]
     return [Brick.Resolve(line) for line in lines]
+
+  def get_depencies(self):
+    """
+    Get bricks from the local bb dependencies file.
+
+    .. deprecated::
+       Replaced by `get_dependencies()`.
+
+    This method is deprecated. Use `get_dependencies()` instead.
+    """
+    import warnings
+    warnings.warn("Method renamed to get_dependencies().", DeprecationWarning)
+    return self.get_dependencies()
   
   def add_dependency(self, ref: str):
       """add a dependency to the local bb dependencies file"""
@@ -31,7 +44,7 @@ class LocalBB():
       brickref = Brick.Resolve(ref)
       
       # check if the added dependency already exists
-      bricknames = [brick.name for brick in self.get_depencies()]
+      bricknames = [brick.name for brick in self.get_dependencies()]
       
       if brickref.name in bricknames:
           raise ValueError(
@@ -50,7 +63,7 @@ class LocalBB():
       brickref = Brick.Resolve(ref)
       
       # Check if the dependency exists before attempting to remove it
-      current_dependencies = self.get_depencies()
+      current_dependencies = self.get_dependencies()
       bricknames = [brick.name for brick in current_dependencies]
       
       if brickref.name not in bricknames:
@@ -67,6 +80,5 @@ class LocalBB():
   
   def install_dependencies(self):
     """install all dependencies"""
-    for brick in self.get_depencies():
+    for brick in self.get_dependencies():
       brick.install()
-  
