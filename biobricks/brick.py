@@ -17,7 +17,7 @@ class Brick:
     def __init__(self, remote, commit):
         self.remote = remote
         self.commit = commit
-        self.name = remote.split("/")[-1]
+        self.name = remote.lower().split("/")[-1]
     
     @staticmethod
     def FromURL(url):
