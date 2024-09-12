@@ -158,7 +158,7 @@ class DVCFetcher:
         else:
             os.symlink(cache_path, brick_path)
         
-    def fetch_outs(self, brick, prefixes=['brick/', 'data/']) -> tuple[list[dict], int]:
+    def fetch_outs(self, brick, prefixes=['brick/']) -> tuple[list[dict], int]:
         dvc_lock = brick.get_dvc_lock()
         stages = [stage for stage in dvc_lock.get('stages', []).values()]
         all_outs = [out for stage in stages for out in stage.get('outs', [])]

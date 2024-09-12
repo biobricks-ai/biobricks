@@ -169,9 +169,7 @@ class Brick:
             
             return collected_files
 
-        brick_assets_dict = collect_allowed_files(brick_dir / 'brick', startdir = brick_dir / 'brick')
-        data_assets_dict = collect_allowed_files(brick_dir / 'data', startdir = brick_dir / 'data')
-        assets_dict = {**brick_assets_dict, **data_assets_dict}
+        assets_dict = collect_allowed_files(brick_dir / 'brick', startdir = brick_dir / 'brick')
 
         # Post-process the keys
         process = lambda key: key.replace('/', '_').replace('\\', '_').replace('.', '_')
