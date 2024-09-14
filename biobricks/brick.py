@@ -120,11 +120,11 @@ class Brick:
         with open(self.path() / "dvc.lock") as f:
             return yaml.safe_load(f)
     
-    def install(self):
+    def install(self, force_redownload=False):
         "install this brick"
         logger.info(f"running checks on brick")
         
-        if bblib(self.commit).exists():
+        if bblib(self.commit).exists() and not force_redownload:
             logger.info(f"\033[91m{self.url}\033[0m already exists in BioBricks library.")
             return True
         
@@ -133,13 +133,16 @@ class Brick:
 
         cmd = functools.partial(run,shell=True,stdout=DEVNULL,stderr=DEVNULL)
         
-        logger.info(f"git clone {self.remote} {self._relpath()} in {bblib()}")
-        cmd(f"git clone {self.remote} {self._relpath()}", cwd = bblib())
-        cmd(f"git checkout {self.commit}", cwd = self.path())
+        if not self.path().exists() or force_redownload:
+            logger.info(f"git clone {self.remote} {self._relpath()} in {bblib()}")
+            if self.path().exists():
+                shutil.rmtree(self.path())
+            cmd(f"git clone {self.remote} {self._relpath()}", cwd = bblib())
+            cmd(f"git checkout {self.commit}", cwd = self.path())
 
-        DVCFetcher().fetch_outs(self)
+        DVCFetcher().fetch_outs(self, force_redownload=force_redownload)
             
-        logger.info(f"\033[94m{self.url()}\033[0m succesfully downloaded to BioBricks library.")
+        logger.info(f"\033[94m{self.url()}\033[0m successfully downloaded to BioBricks library.")
         return self
     
     def assets(self):

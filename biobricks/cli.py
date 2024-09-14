@@ -63,9 +63,18 @@ def configure(bblib, token, overwrite, interactive):
     click.echo(click.style(msg, fg="green"))
 
 @cli.command(help="Install a data dependency", section=Sect.GLOBAL)
-@click.argument("ref",type=str)
-def install(ref):
-    return Brick.Resolve(ref, force_remote=True).install()
+@click.argument("ref", type=str)
+@click.option('--force', is_flag=True, help="Force redownload of the brick and all its assets")
+def install(ref, force):
+    try:
+        brick = Brick.Resolve(ref, force_remote=True)
+        result = brick.install(force_redownload=force)
+        if result is True:
+            click.echo(f"Brick '{ref}' is already installed.")
+        else:
+            click.echo(f"Successfully installed brick '{ref}'.")
+    except Exception as e:
+        click.echo(f"Error occurred while installing '{ref}': {e}", err=True)
 
 @cli.command(help="Uninstall a data dependency", section=Sect.GLOBAL)
 @click.argument("ref", type=str)

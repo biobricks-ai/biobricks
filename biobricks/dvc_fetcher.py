@@ -158,7 +158,7 @@ class DVCFetcher:
         else:
             os.symlink(cache_path, brick_path)
         
-    def fetch_outs(self, brick, prefixes=['brick/']) -> tuple[list[dict], int]:
+    def fetch_outs(self, brick, prefixes=['brick/'], force_redownload=False) -> tuple[list[dict], int]:
         dvc_lock = brick.get_dvc_lock()
         stages = [stage for stage in dvc_lock.get('stages', []).values()]
         all_outs = [out for stage in stages for out in stage.get('outs', [])]
@@ -177,8 +177,20 @@ class DVCFetcher:
         # download files
         cache_paths = [self._remote_url_to_cache_path(url) for url in urls]
         downloader = DownloadManager()
-        downloader.download_files(urls, cache_paths, total_size)
-            
+        
+        if force_redownload:
+            # If force_redownload is True, download all files
+            to_download = list(zip(urls, cache_paths))
+        else:
+            # Check which files need to be downloaded
+            to_download = [(url, cache_path) for url, cache_path in zip(urls, cache_paths) if not cache_path.exists()]
+        
+        if to_download:
+            download_urls, download_paths = zip(*to_download) if to_download else ([], [])
+            downloader.download_files(download_urls, download_paths, total_size)
+        else:
+            logger.info("All files already exist in cache. No downloads needed.")
+        
         # build a symlink between each cache_path and its corresponding path
         brick_paths = [brick.path() / path for path in paths]
         for cache_path, brick_path in zip(cache_paths, brick_paths):
