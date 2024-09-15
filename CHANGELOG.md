@@ -1,3 +1,4 @@
+* Deprecation of `LocalBB.get_depencies()`. Use `LocalBB.get_dependencies()` instead.
 # 0.2.0
 
 1. remove bb.load
