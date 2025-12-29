@@ -33,7 +33,7 @@ class Brick:
         
         is_safe = check_safe_git_repo(bdir)
         if not is_safe:
-            subprocess.check_call(['git', 'config', '--global', '--add', 'safe.directory', bdir])
+            subprocess.check_call(['git', 'config', '--global', '--add', 'safe.directory', str(bdir)])
             
         commit = gsys("git rev-parse HEAD").decode().strip()
         remote = gsys("git config --get remote.origin.url").decode().strip()
@@ -149,10 +149,10 @@ class Brick:
         """Get the assets for this brick."""
         brick_dir = self.path()
         
-        is_safe = check_safe_git_repo(self.path())
-        
+        is_safe = check_safe_git_repo(brick_dir)
+
         if not is_safe:
-            subprocess.check_call(['git', 'config', '--global', '--add', 'safe.directory', brick_dir])
+            subprocess.check_call(['git', 'config', '--global', '--add', 'safe.directory', str(brick_dir)])
         
         if not brick_dir.exists():
             raise Exception(f"No path '{brick_dir}'. Try `biobricks install {self.url()}`")
