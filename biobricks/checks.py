@@ -11,7 +11,9 @@ def check_safe_git_repo(git_repo_path):
     except subprocess.CalledProcessError as e:
         raw_safe_dirs = ""
     safe_dirs = [line.split(' ')[1] for line in raw_safe_dirs.split('\n') if line.strip() != '']
-    return git_repo_path in safe_dirs
+    # Normalize path to string for comparison
+    normalized_path = str(Path(git_repo_path).resolve())
+    return normalized_path in safe_dirs or str(git_repo_path) in safe_dirs
         
 def check_url_available(url):
     try:
