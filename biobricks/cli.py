@@ -9,6 +9,7 @@ from .config import biobricks_config_path, read_config, write_config, init_bblib
 from .checks import check_token
 from .brick import Brick
 from .local_bb import LocalBB
+from . import auth
 
 @cloup.group('biobricks')
 def cli():
@@ -16,6 +17,7 @@ def cli():
 
 class Sect:
     GLOBAL = cloup.Section('GLOBAL: modify global config and installed bricks')
+    AUTH = cloup.Section('AUTH: authenticate with GitHub for private repositories')
     BRICK = cloup.Section('LOCAL: build new bricks and manage their dependencies')
 
 @cli.command(help="configure brick path and token",section=Sect.GLOBAL)
@@ -61,6 +63,91 @@ def configure(bblib, token, overwrite, interactive):
 
     msg = f"Done! BioBricks has BBLIB {bblib} and config {path}"
     click.echo(click.style(msg, fg="green"))
+
+# ============== AUTH COMMANDS ==============
+
+@cli.command(name="auth", help="Authenticate with GitHub for private repositories", section=Sect.AUTH)
+@click.option("--token", default=None, help="GitHub Personal Access Token (or use interactive login)")
+@click.option("--device-flow", is_flag=True, help="Use browser-based OAuth login")
+def auth_login(token, device_flow):
+    """Authenticate with GitHub to access private BioBricks repositories."""
+    if token:
+        # Login with PAT
+        try:
+            user = auth.login_with_pat(token)
+            click.echo(click.style(f"Authenticated as {user['login']}", fg="green"))
+
+            # Check access to biobricks-ai org
+            if auth.check_repo_access(token):
+                click.echo(click.style("Access to biobricks-ai private repos confirmed.", fg="green"))
+            else:
+                click.echo(click.style("Warning: Token may not have access to biobricks-ai private repos.", fg="yellow"))
+        except ValueError as e:
+            click.echo(click.style(f"Authentication failed: {e}", fg="red"))
+            sys.exit(1)
+    elif device_flow:
+        # Browser-based OAuth login
+        try:
+            user = auth.login_with_device_flow()
+            click.echo(click.style(f"\nAuthenticated as {user['login']}", fg="green"))
+        except (TimeoutError, PermissionError, RuntimeError) as e:
+            click.echo(click.style(f"Authentication failed: {e}", fg="red"))
+            sys.exit(1)
+    else:
+        # Interactive: prompt for token or use device flow
+        click.echo("BioBricks GitHub Authentication")
+        click.echo("=" * 40)
+        click.echo("\nOptions:")
+        click.echo("  1. Enter a GitHub Personal Access Token")
+        click.echo("  2. Login via browser (OAuth)\n")
+
+        choice = click.prompt("Choose option", type=click.Choice(['1', '2']), default='2')
+
+        if choice == '1':
+            click.echo("\nCreate a token at: https://github.com/settings/tokens")
+            click.echo("Required scope: 'repo' (Full control of private repositories)\n")
+            pat = click.prompt("Enter your GitHub Personal Access Token", hide_input=True)
+            try:
+                user = auth.login_with_pat(pat)
+                click.echo(click.style(f"\nAuthenticated as {user['login']}", fg="green"))
+            except ValueError as e:
+                click.echo(click.style(f"Authentication failed: {e}", fg="red"))
+                sys.exit(1)
+        else:
+            try:
+                user = auth.login_with_device_flow()
+                click.echo(click.style(f"\nAuthenticated as {user['login']}", fg="green"))
+            except (TimeoutError, PermissionError, RuntimeError) as e:
+                click.echo(click.style(f"Authentication failed: {e}", fg="red"))
+                sys.exit(1)
+
+
+@cli.command(name="auth-status", help="Show GitHub authentication status", section=Sect.AUTH)
+def auth_status():
+    """Show current GitHub authentication status."""
+    status = auth.get_auth_status()
+
+    if status["authenticated"]:
+        click.echo(click.style("GitHub: Authenticated", fg="green"))
+        if status.get("user"):
+            click.echo(f"  User: {status['user']}")
+        if status.get("valid") is False:
+            click.echo(click.style("  Warning: Token may be expired or invalid", fg="yellow"))
+        if status.get("has_refresh_token"):
+            click.echo("  Refresh token: Available")
+    else:
+        click.echo(click.style("GitHub: Not authenticated", fg="yellow"))
+        click.echo("  Run 'biobricks auth' to authenticate")
+
+
+@cli.command(name="auth-logout", help="Remove GitHub authentication", section=Sect.AUTH)
+def auth_logout():
+    """Remove stored GitHub credentials."""
+    auth.clear_github_token()
+    click.echo(click.style("GitHub authentication removed.", fg="green"))
+
+
+# ============== BRICK COMMANDS ==============
 
 @cli.command(help="Install a data dependency", section=Sect.GLOBAL)
 @click.argument("ref", type=str)

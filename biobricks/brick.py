@@ -9,6 +9,7 @@ from .dvc_fetcher import DVCFetcher
 from urllib.parse import urlparse
 import sys
 from .checks import check_url_available, check_token, check_safe_git_repo
+from . import auth
 
 class Brick:
     
@@ -44,11 +45,19 @@ class Brick:
         """Get the version of a brick from its git repo."""
         try:
             logger.info(f"getting latest version of {remote}")
-            commit = subprocess.check_output(f'git ls-remote "{remote}" HEAD', shell=True)
+            # Use authenticated URL for private repos
+            auth_remote = auth.get_authenticated_git_url(remote)
+            commit = subprocess.check_output(f'git ls-remote "{auth_remote}" HEAD', shell=True, stderr=subprocess.DEVNULL)
             commit = commit.decode().strip().split()[0]
             return Brick(remote, commit)
         except subprocess.CalledProcessError as e:
             logger.error(f"failed to get latest version of {remote}: {e}")
+            # Check if auth might be the issue
+            if not auth.get_github_token():
+                raise RuntimeError(
+                    f"Failed to access {remote}. This may be a private repository.\n"
+                    f"Run 'biobricks auth' to authenticate with GitHub."
+                )
             raise RuntimeError(f"Failed to get the latest version of {remote}. Is {remote} a valid git repository?")
 
 
@@ -123,25 +132,47 @@ class Brick:
     def install(self, force_redownload=False):
         "install this brick"
         logger.info(f"running checks on brick")
-        
+
         if bblib(self.commit).exists() and not force_redownload:
             logger.info(f"\033[91m{self.url}\033[0m already exists in BioBricks library.")
             return True
-        
-        check_url_available(self.remote)
+
+        # Use authenticated URL for private repos
+        auth_remote = auth.get_authenticated_git_url(self.remote)
+
+        # Skip URL availability check for private repos (would fail without auth)
+        github_token = auth.get_github_token()
+        if not github_token:
+            # For public repos, check URL availability
+            try:
+                check_url_available(self.remote)
+            except Exception:
+                raise RuntimeError(
+                    f"Cannot access {self.remote}. This may be a private repository.\n"
+                    f"Run 'biobricks auth' to authenticate with GitHub."
+                )
+
         check_token(token())
 
         cmd = functools.partial(run,shell=True,stdout=DEVNULL,stderr=DEVNULL)
-        
+
         if not self.path().exists() or force_redownload:
             logger.info(f"git clone {self.remote} {self._relpath()} in {bblib()}")
             if self.path().exists():
                 shutil.rmtree(self.path())
-            cmd(f"git clone {self.remote} {self._relpath()}", cwd = bblib())
+            # Use authenticated URL for clone
+            result = cmd(f"git clone {auth_remote} {self._relpath()}", cwd = bblib())
+            if result.returncode != 0:
+                if not github_token:
+                    raise RuntimeError(
+                        f"Failed to clone {self.remote}. This may be a private repository.\n"
+                        f"Run 'biobricks auth' to authenticate with GitHub."
+                    )
+                raise RuntimeError(f"Failed to clone {self.remote}")
             cmd(f"git checkout {self.commit}", cwd = self.path())
 
         DVCFetcher().fetch_outs(self, force_redownload=force_redownload)
-            
+
         logger.info(f"\033[94m{self.url()}\033[0m successfully downloaded to BioBricks library.")
         return self
     

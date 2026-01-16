@@ -1,7 +1,8 @@
 from .brick import Brick
 from .cli import cli
 from .checks import check_configured
-import requests, json 
+from . import auth
+import requests, json
 
 def assets(brick):
     """List the paths of the assets of a brick"""
@@ -20,11 +21,26 @@ def install(brick):
 def configure():
     """Configure biobricks globally"""
     return cli.config()
-    
+
 def ls_remote():
-    """List the bricks available on github.com/biobricks-ai"""
+    """List the bricks available on github.com/biobricks-ai (including private repos if authenticated)"""
     check_configured()
-    r = requests.get("https://api.github.com/users/biobricks-ai/repos")
-    repos = json.loads(r.text)
-    for repo in repos:
-        yield repo["name"]
+
+    headers = {"Accept": "application/vnd.github+json"}
+    github_token = auth.get_github_token()
+    if github_token:
+        headers["Authorization"] = f"Bearer {github_token}"
+
+    # Paginate through all repos
+    page = 1
+    while True:
+        r = requests.get(
+            f"https://api.github.com/orgs/biobricks-ai/repos?per_page=100&page={page}",
+            headers=headers
+        )
+        repos = json.loads(r.text)
+        if not repos:
+            break
+        for repo in repos:
+            yield repo["name"]
+        page += 1
