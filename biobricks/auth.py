@@ -7,6 +7,8 @@ Supports:
 """
 
 import json
+import os
+import re
 import time
 import webbrowser
 from pathlib import Path
@@ -280,25 +282,57 @@ def get_auth_status() -> Dict[str, Any]:
     return status
 
 
-def get_authenticated_git_url(url: str) -> str:
-    """Convert a GitHub URL to use token authentication."""
+_URL_USERINFO_RE = re.compile(r"(https://)[^@/\s]+@")
+
+
+def strip_token_from_url(url: str) -> str:
+    """Remove userinfo (e.g. an embedded token) from an https URL."""
+    return _URL_USERINFO_RE.sub(r"\1", url)
+
+
+def git_auth(env: Optional[Dict[str, str]] = None) -> tuple:
+    """Build git arguments and environment for authenticated github.com access.
+
+    Returns (args, env). `args` are `-c credential.helper=...` options that make
+    git read the token from environment variables, so the token never appears in
+    the command line, the process table, or the cloned repo's .git/config.
+    `env` is a copy of the base environment plus the token variables.
+    With no stored token, args is empty and env is unchanged.
+    """
+    base = dict(env if env is not None else os.environ)
     token = get_github_token()
     if not token:
-        return url
+        return [], base
 
-    # Handle HTTPS URLs
-    if url.startswith("https://github.com/"):
-        # Insert token into URL: https://token@github.com/...
-        return url.replace("https://github.com/", f"https://{token}@github.com/")
+    helper = '!f() { echo "username=$BIOBRICKS_GIT_USER"; echo "password=$BIOBRICKS_GIT_TOKEN"; }; f'
+    # The first empty helper clears inherited credential helpers so ours is authoritative.
+    args = ["-c", "credential.helper=", "-c", f"credential.helper={helper}"]
+    base["BIOBRICKS_GIT_USER"] = _read_auth().get("github_user") or "x-access-token"
+    base["BIOBRICKS_GIT_TOKEN"] = token
+    return args, base
 
-    return url
+
+_TOKEN_REMOTE_RE = re.compile(r"(https://)[^@/\s]+@(github\.com/)")
 
 
-def get_git_credentials() -> Optional[tuple]:
-    """Get credentials for git credential helper."""
-    token = get_github_token()
-    if token:
-        auth = _read_auth()
-        username = auth.get("github_user", "x-access-token")
-        return (username, token)
-    return None
+def scrub_git_config_tokens(bblib_path) -> int:
+    """Remove tokens embedded in remote URLs of .git/config files under bblib.
+
+    biobricks 0.4.0 cloned private bricks with the GitHub token embedded in the
+    remote URL, and git persisted that URL to each brick's .git/config. This
+    rewrites those URLs to plain https://github.com/... form.
+    Returns the number of files rewritten.
+    """
+    fixed = 0
+    for cfg in Path(bblib_path).glob("*/*/*/.git/config"):
+        try:
+            text = cfg.read_text()
+        except OSError:
+            continue
+        cleaned = _TOKEN_REMOTE_RE.sub(r"\1\2", text)
+        if cleaned != text:
+            cfg.write_text(cleaned)
+            fixed += 1
+    if fixed:
+        logger.info(f"removed embedded credentials from {fixed} .git/config file(s) in {bblib_path}")
+    return fixed

@@ -38,6 +38,7 @@ class Brick:
             
         commit = gsys("git rev-parse HEAD").decode().strip()
         remote = gsys("git config --get remote.origin.url").decode().strip()
+        remote = auth.strip_token_from_url(remote)
         return Brick(remote, commit)
 
     @staticmethod
@@ -45,9 +46,12 @@ class Brick:
         """Get the version of a brick from its git repo."""
         try:
             logger.info(f"getting latest version of {remote}")
-            # Use authenticated URL for private repos
-            auth_remote = auth.get_authenticated_git_url(remote)
-            commit = subprocess.check_output(f'git ls-remote "{auth_remote}" HEAD', shell=True, stderr=subprocess.DEVNULL)
+            # Authenticate via an env-based credential helper for private repos;
+            # the token never appears in the command line.
+            auth_args, auth_env = auth.git_auth()
+            commit = subprocess.check_output(
+                ["git", *auth_args, "ls-remote", remote, "HEAD"],
+                stderr=subprocess.DEVNULL, env=auth_env)
             commit = commit.decode().strip().split()[0]
             return Brick(remote, commit)
         except subprocess.CalledProcessError as e:
@@ -83,6 +87,7 @@ class Brick:
             return Brick.FromRemote(remote)
 
         # retrieve from library if it exists
+        auth.scrub_git_config_tokens(bblib())
         bricks = []
         bdir = bblib() / "biobricks-ai" / ref
         if bdir.exists():
@@ -137,8 +142,12 @@ class Brick:
             logger.info(f"\033[91m{self.url}\033[0m already exists in BioBricks library.")
             return True
 
-        # Use authenticated URL for private repos
-        auth_remote = auth.get_authenticated_git_url(self.remote)
+        # Remove credentials embedded in .git/config by biobricks 0.4.0
+        auth.scrub_git_config_tokens(bblib())
+
+        # Authenticate via an env-based credential helper for private repos;
+        # the token never appears in the command line or in .git/config.
+        auth_args, auth_env = auth.git_auth()
 
         # Skip URL availability check for private repos (would fail without auth)
         github_token = auth.get_github_token()
@@ -154,14 +163,14 @@ class Brick:
 
         check_token(token())
 
-        cmd = functools.partial(run,shell=True,stdout=DEVNULL,stderr=DEVNULL)
+        cmd = functools.partial(run,stdout=DEVNULL,stderr=DEVNULL)
 
         if not self.path().exists() or force_redownload:
             logger.info(f"git clone {self.remote} {self._relpath()} in {bblib()}")
             if self.path().exists():
                 shutil.rmtree(self.path())
-            # Use authenticated URL for clone
-            result = cmd(f"git clone {auth_remote} {self._relpath()}", cwd = bblib())
+            result = cmd(["git", *auth_args, "clone", self.remote, str(self._relpath())],
+                         cwd = bblib(), env = auth_env)
             if result.returncode != 0:
                 if not github_token:
                     raise RuntimeError(
@@ -169,7 +178,7 @@ class Brick:
                         f"Run 'biobricks auth' to authenticate with GitHub."
                     )
                 raise RuntimeError(f"Failed to clone {self.remote}")
-            cmd(f"git checkout {self.commit}", cwd = self.path())
+            cmd(["git", "checkout", self.commit], cwd = self.path())
 
         DVCFetcher().fetch_outs(self, force_redownload=force_redownload)
 
